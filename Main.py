@@ -48,11 +48,32 @@ def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
 	link = url;
 	page = urllib2.urlopen(url)
 	soup = BeautifulSoup(page.read())
-	availability = soup.find(id="room-203a").findAll("li", {"class" : "zone even open day"}) #finds if a study room is open or not 
-	if availability:
-		writeOut(availability, PATH)
-	elif not availability:
-		print "Study Room 203A Completely Booked"
+	print "What study room would you like to book? "
+	studyroom = "room-" + raw_input('> ')
+
+	availability_even_day = soup.find(id=studyroom).findAll("li", {"class" : "zone even open day"}) #finds if a study room is open or not 
+	availability_even_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even open night"})
+	availability_odd_day = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd day"})
+	availability_odd_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd night"})
+
+### Simply to test if availabilities are populating correctly --> If coming back as empties, study rooms are completely booked 
+	print availability_even_day
+	print availability_even_night
+	print availability_odd_day
+	print availability_odd_night
+
+	if availability_even_day or availability_odd_day or availability_even_night or availability_odd_night:
+		if availability_even_day:
+			writeOut(availability_even_day, PATH)
+		elif availability_odd_day:
+			writeOut(availability_odd_day)
+		elif availability_even_night:
+			writeOut(availability_even_night)
+		elif availability_odd_night:
+			writeOut(availability_odd_night)
+		print "Study Room %s Available" % studyroom
+	else:
+		print "Study Room %s Completely Booked" % studyroom
 
 def IPfetch():
 	print "Hostname is: " + socket.gethostname()
