@@ -22,7 +22,6 @@ def main():
 	IPfetch()
 	studyBug(url)
 	htmlFetch(url)
-	setIPAddr('em1', '192.168.0.1')
 
 
 def htmlFetch(url):
