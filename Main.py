@@ -44,7 +44,7 @@ def main():
 	############################################
 
 	IPfetch()
-	# studyBug(url)
+	studyBug(url)
 	htmlFetch(url, PATH)
 
 
@@ -89,7 +89,7 @@ def IPfetch():
 def studyBug(url):
 	print "Crawling Site..."
 	print "Beginning a URL hit..."
-	driver = webdriver.Firefox()
+	driver = webdriver.Chrome(executable_path="/Users/grantmcgovern/Dropbox/Developer/Projects/StudyBug/chromedriver")
 	driver.get(url)
 	assert "ZSR" in driver.title
 	elem = driver.find_element_by_id("room-203a")
