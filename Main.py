@@ -63,12 +63,15 @@ def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
 	availability_even_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even open night"})
 	availability_odd_day = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd day"})
 	availability_odd_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd night"})
+	
+	for label in soup.select('li.zone label'):
+		print label
 
 ### Simply to test if availabilities are populating correctly --> If coming back as empties, study rooms are completely booked 
-	print availability_even_day
-	print availability_even_night
-	print availability_odd_day
-	print availability_odd_night
+	# print availability_even_day
+	# print availability_even_night
+	# print availability_odd_day
+	# print availability_odd_night
 
 #########################################################
 
@@ -104,8 +107,9 @@ def studyBug(url):
 	elem = driver.find_element_by_id("room-203a") #looks for the HTML element for the specific study room
 
 def writeOut(availability, PATH): # function used to write out to text file 
+	time = availability
 	with open(PATH, "wb") as f:
-		print availability
+		#print availability
 		string = str(availability)
 		f.write(string)
 
