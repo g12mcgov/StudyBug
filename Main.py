@@ -22,18 +22,22 @@ def main():
 	date = getDate() # must make a call to get date and pass into URL to update with day 
 	############################################
 	### DO NOT CHANGE ###:
-	url = "http://zsr.wfu.edu/studyrooms/%s" % date
+	url = "http://zsr.wfu.edu/studyrooms/2014/04/09" 
 	PATH = "/Users/grantmcgovern/Desktop/HTMLwrite.txt"
 	############################################
 	print "Beginning a URL hit..."
+	time.sleep(1) # will take out when done... just simulating a hit right now
 	print "URL: " + url + '\n'
 
 	############################################
 	### Defines a Test User : Contains username/password
+	
+	readIn()
+
 	user1 = User("mcgoga12", "password")
 	user2 = User("shellb12", "password1")
-	user1.showKeys()
-	user2.showKeys()
+#	user1.showKeys()
+#	user2.showKeys()
 
 	print "Total User Count: %d \n" % User.global_count 
 
@@ -96,6 +100,14 @@ def writeOut(availability, PATH):
 		string = str(availability)
 		f.write(string)
 
+def readIn():
+	
+	with open("credentials.txt", "r") as infile:
+    		content = [line.rstrip().split(",") for line in infile]
+    		usernames, passwords = zip(*content)
+    		print usernames, passwords
+	for username in usernames:
+		print "username: %s" % username
 
 def getDate():
 	date = time.strftime("%Y/%m/%d")
