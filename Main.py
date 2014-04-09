@@ -11,6 +11,7 @@ import socket # used to get IP address
 import struct 
 import fcntl 
 import time
+from Queue import Queue
 from Credentials import * #stores information regarding usernames and passwords 
 from bs4 import BeautifulSoup #imports HTML BeautifulSoup only instead of XML
 from selenium import webdriver 
@@ -19,39 +20,56 @@ from selenium.webdriver.common.keys import Keys
 
 def main():
 
+	IPfetch() # function to return IP address
 	date = getDate() # must make a call to get date and pass into URL to update with day 
 	############################################
-	### DO NOT CHANGE ###:
-	url = "http://zsr.wfu.edu/studyrooms/2014/04/09" 
+	### DO NOT CHANGE ### CONSTANTS ###:
+	url = "http://zsr.wfu.edu/studyrooms/2014/04/10" #% date # passes in the date string to append to URL 
 	PATH = "/Users/grantmcgovern/Desktop/HTMLwrite.txt"
+	studyrooms = ['203a','203b','225','226','227','228','232','675','676','677'] # list of available study rooms in ZSR
 	############################################
-	print "Beginning a URL hit..."
-	time.sleep(1) # will take out when done... just simulating a hit right now
-	print "URL: " + url + '\n'
+	priority_queue = Queue(len(studyrooms)) #creates a Queue of Study rooms, the length of available study rooms
+	############################################
+	for room in studyrooms:
+		priority_queue.put(room)
 
-	############################################
+	while not priority_queue.empty():
+		print priority_queue.get()
+
+
 	### Defines a Test User : Contains username/password
 	
 	readIn() # function that reads in data from text file, current a dummy function as users as hard-coded below:
 
 	user1 = User("mcgoga12", "password")
 	user2 = User("shellb12", "password1")
-	user1.showKeys() # shows the username and password for user1
-	user2.showKeys() # shows the username and password for user2
+	# user1.showKeys() # shows the username and password for user1
+	# user2.showKeys() # shows the username and password for user2
 
 	print "Total User Count: %d \n" % User.global_count # displays the amount of current users 
 
 	############################################
 
-	IPfetch() # function to return IP address
-	studyBug(url) # function that kicks off the Web-Interactivity using Selenium 
-	htmlFetch(url, PATH) # grabs the HTML to see if rooms are available using BeautifulSoup
+	# studyBug(url) # function that kicks off the Web-Interactivity using Selenium 
+	HTML = htmlFetch(url, PATH) # grabs the HTML to see if rooms are available using BeautifulSoup
+	availability(HTML)
 
+def analyzeQueue():
+	
 
 def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
+	print "Beginning a URL hit..."
+	print "URL: " + url + '\n'
+	time.sleep(1) # will take out when done... just simulating a hit right now
 	link = url;
 	page = urllib2.urlopen(url) # makes the URL hit
 	soup = BeautifulSoup(page.read()) # reads in the HTML data from the page 
+	return soup
+
+def availability(soup):
+
+	availabilityQueue = Queue(48) # number of half-hours in a day 
+
 	print "What study room would you like to book? "
 	studyroom = "room-" + raw_input('> ') # will be taken out, left in right now to work with specific study rooms 
 
@@ -61,31 +79,33 @@ def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
 
 	availability_even_day = soup.find(id=studyroom).findAll("li", {"class" : "zone even open day"}) 
 	availability_even_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even open night"})
-	availability_odd_day = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd day"})
-	availability_odd_night = soup.find(id=studyroom).findAll("li", {"class" : "zone even odd night"})
+	availability_odd_day = soup.find(id=studyroom).findAll("li", {"class" : "zone odd open day"})
+	availability_odd_night = soup.find(id=studyroom).findAll("li", {"class" : "zone odd open night"})
 	
-	for label in soup.select('li.zone label'):
-		print label
+	# not necessary:
+	for label in soup.find(id=studyroom).select('li.zone label'):
+		print label.get_text()
 
 ### Simply to test if availabilities are populating correctly --> If coming back as empties, study rooms are completely booked 
-	# print availability_even_day
-	# print availability_even_night
-	# print availability_odd_day
-	# print availability_odd_night
+	#print availability_even_day
+	#print availability_even_night
+	#print availability_odd_day
+	#print availability_odd_night
 
 #########################################################
 
 	# if there exists ANY study room that is open, proceed to check individually 
 	if availability_even_day or availability_odd_day or availability_even_night or availability_odd_night:
 		if availability_even_day: # if availability_even_day is the room open, then say so using writeOut()
-			writeOut(availability_even_day, PATH)
+			availabilityQueue.put(availability_even_day)
 		elif availability_odd_day: # if availability_odd_day is the room open, then say so using writeOut()
-			writeOut(availability_odd_day)
+			availabilityQueue.put(availability_odd_day)
 		elif availability_even_night: # if availability_even_night is the room open, then say so using writeOut()
-			writeOut(availability_even_night)
+			availabilityQueue.put(availability_even_night)
 		elif availability_odd_night:
-			writeOut(availability_odd_night) # if availability_odd_night is the room open, then say so using writeOut()
+			availabilityQueue.put(availability_odd_night) # if availability_odd_night is the room open, then say so using writeOut()
 		print "Study Room %s Available" % studyroom
+		return availabilityQueue
 	else: # otherwise if no Study Room is available, then print out that the specific study room is completely booked 
 		print "Study Room %s Completely Booked" % studyroom
 
@@ -98,7 +118,6 @@ def IPfetch():
 
 def studyBug(url):
 	print "Crawling Site..."
-	print "Beginning a URL hit..."
 	# this opens up Chrome
 	driver = webdriver.Chrome(executable_path="/Users/grantmcgovern/Dropbox/Developer/Projects/StudyBug/chromedriver")
 	# this 	1
@@ -117,9 +136,9 @@ def readIn():
 	with open("credentials.txt", "r") as infile:
     		content = [line.rstrip().split(",") for line in infile]
     		usernames, passwords = zip(*content) # nifty zip function used to split usernames and passwors into two seperate lists 
-    		print usernames, passwords
-	for username in usernames:
-		print "username: %s" % username
+    		#print usernames, passwords
+			#for username in usernames:
+			#print "username: %s" % username
 
 def getDate():
 	date = time.strftime("%Y/%m/%d")
