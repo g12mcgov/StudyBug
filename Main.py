@@ -5,12 +5,12 @@ import re # library that allows us to work wit Regular Expressions (Regex) --> w
 import datetime 
 import sys 
 import os # allows us to interact with paths and open the file in a relative location 
-import urllib # library to work with URLs (helps go out to make the URL hit)
 import urllib2 # library to work with URLs (helps go out to make the URL hit)
 import socket # used to get IP address
 import struct 
 import fcntl 
 import time
+from selenium.webdriver.support import expected_conditions as EC
 from Queue import Queue
 from Credentials import * #stores information regarding usernames and passwords 
 from bs4 import BeautifulSoup #imports HTML BeautifulSoup only instead of XML
@@ -30,6 +30,7 @@ def main():
 	############################################
 	priority_queue = Queue(len(studyrooms)) #creates a Queue of Study rooms, the length of available study rooms
 	############################################
+
 	for room in studyrooms:
 		priority_queue.put(room)
 
@@ -50,31 +51,34 @@ def main():
 
 	############################################
 	availabilitylist = [] * 48
-	# studyBug(url) # function that kicks off the Web-Interactivity using Selenium 
-	HTML = htmlFetch(url, PATH) # grabs the HTML to see if rooms are available using BeautifulSoup
-	availabilitylist = availability(HTML)
-	analyzeQueue(availabilitylist)
 
-def analyzeQueue(availabilitylist):
-	for shit in availabilitylist:
-		print shit
+	HTML = htmlFetch(url, PATH) # grabs the HTML to see if rooms are available using BeautifulSoup
+	analyzeList(availabilitylist)
+	studyroom = getStudyRoom()
+	print studyroom
+	availabilitylist = availability(HTML, studyroom)
+	reserve(url, studyroom) # function that kicks off the Web-Interactivity using Selenium 
+
+def analyzeList(availabilitylist):
+	if availabilitylist: # check to see if the list is even populated 
+		for shit in availabilitylist:
+			print shit
 	
 
 def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
 	print "Beginning a URL hit..."
 	print "URL: " + url + '\n'
-	time.sleep(1) # will take out when done... just simulating a hit right now
+	# time.sleep(1) # will take out when done... just simulating a hit right now
 	link = url;
 	page = urllib2.urlopen(url) # makes the URL hit
 	soup = BeautifulSoup(page.read()) # reads in the HTML data from the page 
 	return soup
 
-def availability(soup):
+def availability(soup, studyroom):
 
 	availabilityList = [] * 48 # number of half-hours in a day 
 
-	print "What study room would you like to book? "
-	studyroom = "room-" + raw_input('> ') # will be taken out, left in right now to work with specific study rooms 
+	 # will be taken out, left in right now to work with specific study rooms 
 
 ### zsr.wfu.edu/studyrooms is staggered in the following way:
 	# availability is marked by the 4 following options.
@@ -126,19 +130,18 @@ def IPfetch():
 
 	### This function will eventually be used to change the IP address every time it's run
 
-def studyBug(url):
+def reserve(url, studyroom):
 	print "Crawling Site..."
-	# this opens up Chrome
 	driver = webdriver.Chrome(executable_path="/Users/grantmcgovern/Dropbox/Developer/Projects/StudyBug/chromedriver")
-	# this 	1
 	driver.get(url)
 	assert "ZSR" in driver.title # this assures that the word ZSR is in the webpage title (simply checks to make sure we'lre in the right spot)
-	elem = driver.find_element_by_id("room-203a") #looks for the HTML element for the specific study room
+	#studyroom.replace("room-","",1)
+	studyroom_copy = studyroom
+	elem = driver.find_element_by_id(studyroom_copy)# % studyroom #looks for the HTML element for the specific study room
 
 def writeOut(availability, PATH): # function used to write out to text file 
 	time = availability
 	with open(PATH, "wb") as f:
-		#print availability
 		string = str(availability)
 		f.write(string)
 
@@ -153,6 +156,12 @@ def readIn():
 def getDate():
 	date = time.strftime("%Y/%m/%d")
 	return date
+
+def getStudyRoom():
+	print "What study room would you like to book? "
+	studyroom = "room-" + raw_input('> ')
+	return studyroom
+
 
 if __name__ == "__main__":
 	main()
