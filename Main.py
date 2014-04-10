@@ -49,12 +49,15 @@ def main():
 	print "Total User Count: %d \n" % User.global_count # displays the amount of current users 
 
 	############################################
-
+	availabilitylist = [] * 48
 	# studyBug(url) # function that kicks off the Web-Interactivity using Selenium 
 	HTML = htmlFetch(url, PATH) # grabs the HTML to see if rooms are available using BeautifulSoup
-	availability(HTML)
+	availabilitylist = availability(HTML)
+	analyzeQueue(availabilitylist)
 
-def analyzeQueue():
+def analyzeQueue(availabilitylist):
+	for shit in availabilitylist:
+		print shit
 	
 
 def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
@@ -68,7 +71,7 @@ def htmlFetch(url, PATH): #must also pass in the path to the writeOut() call
 
 def availability(soup):
 
-	availabilityQueue = Queue(48) # number of half-hours in a day 
+	availabilityList = [] * 48 # number of half-hours in a day 
 
 	print "What study room would you like to book? "
 	studyroom = "room-" + raw_input('> ') # will be taken out, left in right now to work with specific study rooms 
@@ -87,25 +90,32 @@ def availability(soup):
 		print label.get_text()
 
 ### Simply to test if availabilities are populating correctly --> If coming back as empties, study rooms are completely booked 
-	#print availability_even_day
-	#print availability_even_night
-	#print availability_odd_day
-	#print availability_odd_night
-
+	'''
+	print availability_even_day
+	print availability_even_night
+	print availability_odd_day
+	print availability_odd_night
+	'''
 #########################################################
 
 	# if there exists ANY study room that is open, proceed to check individually 
 	if availability_even_day or availability_odd_day or availability_even_night or availability_odd_night:
-		if availability_even_day: # if availability_even_day is the room open, then say so using writeOut()
-			availabilityQueue.put(availability_even_day)
-		elif availability_odd_day: # if availability_odd_day is the room open, then say so using writeOut()
-			availabilityQueue.put(availability_odd_day)
-		elif availability_even_night: # if availability_even_night is the room open, then say so using writeOut()
-			availabilityQueue.put(availability_even_night)
-		elif availability_odd_night:
-			availabilityQueue.put(availability_odd_night) # if availability_odd_night is the room open, then say so using writeOut()
+		if availability_odd_day: # if availability_even_day is the room open, then say so using writeOut()
+			availabilityList.insert(0, availability_odd_day)
+		
+		if availability_even_day: # if availability_odd_day is the room open, then say so using writeOut()
+			availabilityList.insert(1, availability_even_day)
+		
+		if availability_odd_night: # if availability_even_night is the room open, then say so using writeOut()
+			availabilityList.insert(2, availability_odd_night)
+		
+		if availability_even_night:
+			availabilityList.insert(3, availability_even_night) # if availability_odd_night is the room open, then say so using writeOut()
+		
 		print "Study Room %s Available" % studyroom
-		return availabilityQueue
+	
+		return availabilityList
+
 	else: # otherwise if no Study Room is available, then print out that the specific study room is completely booked 
 		print "Study Room %s Completely Booked" % studyroom
 
