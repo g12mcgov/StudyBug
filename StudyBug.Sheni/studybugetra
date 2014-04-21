@@ -1,0 +1,31 @@
+	'''if not availabilitylist[2]:
+		print 'ba'
+	else:
+		str2 = str(availabilitylist[1]) #odd_day
+		split2 = str2.split(',')
+		for index in range(len(split2)):
+			spot2 = split2[index].find("Room")
+			temp = str(split2[index][spot2 + 9 : spot2 + 18].translate(None, '< /'))
+			td2 = datetime.datetime.strptime(temp, '%I:%M%p') 
+			newdict[td2] = split2[index]
+	if not availabilitylist[3]:
+		print 'ba'
+	else:
+		str3 = str(availabilitylist[2]) #even_night
+		split3 = str3.split(',')
+		for index in range(len(split3)):
+			spot3 = split3[index].find("Room")
+			temp = str(split3[index][spot3 + 9 : spot3 + 18].translate(None, '< /'))
+			td3 = datetime.datetime.strptime(temp, '%I:%M%p') 
+			newdict[td3] = split3[index]
+	if not availabilitylist[4]:
+		print 'ba'
+	else:
+		str4 = str(availabilitylist[3]) #odd_night
+		split4 = str4.split(',')
+		for index in range(len(split4)):
+			spot4 = split4[index].find("Room")
+			temp = str(split4[index][spot4 + 9 : spot4+ 18].translate(None, '< /'))
+			td4 = datetime.datetime.strptime(temp, '%I:%M%p') 
+			newdict[td4] = split4[index]
+			'''
