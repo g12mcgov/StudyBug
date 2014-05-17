@@ -39,7 +39,7 @@ def main():
 			print "Nothing in the availabilitylist."
 			break
 		else:
-			availabilitylist = analyzeList(availabilitylist)		
+			availabilitylist = analyzeList(availabilitylist)	
 			times = availabilitylist.keys()
 			updatedavailabilitylist = formatAvailabilityList(availabilitylist)
 			studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity using Selenium 
