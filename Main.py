@@ -7,65 +7,50 @@ import datetime
 import sys 
 import urllib2 # library to work with URLs (helps go out to make the URL hit)
 import socket # used to get IP address
-import selenium
 import operator
 import os
 from Credentials import * #stores information regarding usernames and passwords 
 from Email import *
-from bs4 import BeautifulSoup #imports HTML BeautifulSoup only instead of XML
-from selenium import webdriver 
+from bs4 import BeautifulSoup 
+import re
+from splinter import Browser
 from collections import OrderedDict
 from pyvirtualdisplay import Display
-from selenium.webdriver.common.keys import Keys 
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
 
 def main():
-
-	for i in range(10):
-		try:
-			display = Display(visible = 0, size = (800,600))
-			display.start()
-			date = getDate() # must make a call to get date and pass into URL to update with day 
-			### DO NOT CHANGE ### CONSTANTS ###:
-			url = "http://zsr.wfu.edu/studyrooms/%s" % date # passes in the date string to append to URL 
-			exact_room = raw_input("Please enter the room you would like to book: ")
-			room = "room-" + "%s" % exact_room
-			availabilitylist = [] * 48
-			temp = []
-			############################################
-			IPfetch() # function to return IP address
-			############################################
-			HTML_first = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
-			availabilitylist_first = availability(room, HTML_first)
-			
-			userList = readIn() # function that reads in data from text file, current a dummy function as users as hard-coded below:
-			
-			for user in userList: # loop restricted by # of users
-				HTML = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
-				availabilitylist = availability(room, HTML)
-				if not availabilitylist:
-					print "Nothing in the availabilitylist."
-					break
-				else:
-					availabilitylist = analyzeList(availabilitylist)		
-					times = availabilitylist.keys()
-					updatedavailabilitylist = formatAvailabilityList(availabilitylist)
-					studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity using Selenium 
-			
-			display.stop()
-			
-			timelist = []
-			for user in userList: # loop restricted by # of users
-				timelist.extend(getconfirm(url, timelist, user, room))
-			print timelist
-			sendEmail("\n".join(timelist))
-			print "Task Successful."
-			
-			break	
-			
-		except:
-			print "Task Failed.", sys.exc_info()[0]
+	date = getDate() # must make a call to get date and pass into URL to update with day 
+	### DO NOT CHANGE ### CONSTANTS ###:
+	url = "http://zsr.wfu.edu/studyrooms/%s" % date # passes in the date string to append to URL 
+	room = "room-" + "203b" 
+	availabilitylist = [] * 48
+	temp = []
+	############################################
+	IPfetch() # function to return IP address
+	############################################
+	HTML_first = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
+	availabilitylist_first = availability(room, HTML_first)
+	
+	userList = readIn() # function that reads in data from text file, current a dummy function as users as hard-coded below:
+	
+	for user in userList: # loop restricted by # of users
+		HTML = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
+		availabilitylist = availability(room, HTML)
+		if not availabilitylist:
+			print "Nothing in the availabilitylist."
+			break
+		else:
+			availabilitylist = analyzeList(availabilitylist)		
+			times = availabilitylist.keys()
+			updatedavailabilitylist = formatAvailabilityList(availabilitylist)
+			studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity using Selenium 
+	
+	
+	timelist = []
+	for user in userList: # loop restricted by # of users
+		timelist.extend(getconfirm(url, timelist, user, room))
+	print timelist
+	sendEmail("\n".join(timelist))
+	print "Task Successful."
 
 def IPfetch():
 	print "Hostname is: " + socket.gethostname() # returns the hostname 
@@ -126,52 +111,41 @@ def studyBug(url, tosend, user_info):
 		"No Times Available"
 		return
 	print "Crawling Site..."
-	driver = webdriver.Chrome(executable_path= '/Users/grantmcgovern/Dropbox/Developer/Projects/StudyBug/StudyBug.Sheni/chromedriver')
-	driver.get(url)
+	driver = Browser('phantomjs')
+	driver.visit(url)
 	# this opens up Chrome
-	assert "ZSR" in driver.title # this assures that the word ZSR is in the webpage title 
 	print "\n".join(tosend) #formatted to look nice
 	if len(tosend)<1:
 		pass
 	else:
-		mouse = webdriver.ActionChains(driver)
 		xpath1 = "//label[contains(text(),'%s')]/.." % tosend[0]
-		checkbox1 = driver.find_element_by_xpath(xpath1)
-		mouse.move_to_element(checkbox1).click().perform()
+		driver.find_by_xpath(xpath1).click()
 	if len(tosend)<2:
 		pass
 	else:
 		xpath2 = "//label[contains(text(),'%s')]/.." % tosend[1]
-		mouse = webdriver.ActionChains(driver)
-		checkbox2 = driver.find_element_by_xpath(xpath2)
-		mouse.move_to_element(checkbox2).click().perform()
+		driver.find_by_xpath(xpath2).click()
 	if len(tosend)<3:
 		pass
 	else:
 		xpath3 = "//label[contains(text(),'%s')]/.." % tosend[2]
-		mouse = webdriver.ActionChains(driver)
-		checkbox3 = driver.find_element_by_xpath(xpath3)
-		mouse.move_to_element(checkbox3).click().perform()
+		driver.find_by_xpath(xpath3).click()
 	if len(tosend)<4:
 		pass
 	else:
 		xpath4 = "//label[contains(text(),'%s')]/.." % tosend[3]
-		mouse = webdriver.ActionChains(driver)
-		checkbox4 = driver.find_element_by_xpath(xpath4)
-		mouse.move_to_element(checkbox4).click().perform()
+		driver.find_by_xpath(xpath4).click()
 	
-	submit = driver.find_element_by_id("reserve").click()
+	submit = driver.find_by_id("reserve").click()
 	
-	username = driver.find_element_by_name("username")
-	username.send_keys(user_info.getusername())
+	driver.find_by_name("username").fill(user_info.getusername())
 	print "User: %s" % user_info.getusername()
-	password = driver.find_element_by_name("password")
-	password.send_keys(user_info.getkey())
+	driver.find_by_name("password").fill(user_info.getkey())
 	#print user_info.getkey()
 
-	driver.find_element_by_name("submit").click()
+	driver.find_by_name("submit").click()
 
-	driver.close() # this closes the browser
+	driver.quit() # this closes the browser
 
 def writeOut(availability, PATH): # function used to write out to text file 
 	time = availability
@@ -197,7 +171,7 @@ def getDate():
 	now = datetime.datetime.now()
 	startdate=now.strftime("%Y/%m/%d")
 	date = datetime.datetime.strptime(startdate, "%Y/%m/%d")
-	endate = date + datetime.timedelta(days=4)
+	endate = date + datetime.timedelta(days=1)
 	toreturn = endate.strftime("%Y/%m/%d")
 	# Example format = 2014/04/17
 	return toreturn
@@ -206,23 +180,18 @@ def getconfirm(url, timelist, user_info, studyroom):
 	logurl = "https://zsr.wfu.edu/studyrooms/login"
 	print "\n"
 	print "Confirming..."
-	driver = webdriver.Chrome(executable_path= '/Users/grantmcgovern/Dropbox/Developer/Projects/StudyBug/StudyBug.Sheni/chromedriver')
-	driver.get(logurl)
-	# this opens up Chrome
-	assert "ZSR" in driver.title # this assures that the word ZSR is in the webpage title 
+	driver = Browser('phantomjs')
+	driver.visit(logurl)
 
-	username = driver.find_element_by_name("username")
-	username.send_keys(user_info.getusername())
+	driver.find_by_name("username").fill(user_info.getusername())
 	print "Checking... %s" % user_info.getusername()
-
-	password = driver.find_element_by_name("password")
-	password.send_keys(user_info.getkey())
+	driver.find_by_name("password").fill(user_info.getkey())
 	print "Checking... %s" % abs(hash(user_info.getkey())) # uses a cheap hash to mask user password 
 
-	driver.find_element_by_name("submit").click()
+	driver.find_by_name("submit").click()
 	date = getDate()
-	daytclick = driver.get(url)
-	source = driver.page_source
+	daytclick = driver.visit(url)
+	source = driver.html
 	soup = BeautifulSoup(source) # reads in the HTML data from the page 
 	
 	confirmationlist = []
@@ -231,7 +200,7 @@ def getconfirm(url, timelist, user_info, studyroom):
 		temp = label.get_text()
 		temp = temp.encode('ascii','ignore')
 		confirmationlist.append(temp)
-	driver.close() # this closes the browser
+	driver.quit() # this closes the browser
 	print confirmationlist
 	return confirmationlist
 
