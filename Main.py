@@ -21,14 +21,12 @@ def main():
 	date = getDate() # must make a call to get date and pass into URL to update with day 
 	### DO NOT CHANGE ### CONSTANTS ###:
 	url = "http://zsr.wfu.edu/studyrooms/%s" % date # passes in the date string to append to URL 
-	room = "room-" + "203b" 
+	room = "room-" + "225" 
 	availabilitylist = [] * 48
 	temp = []
 	############################################
 	IPfetch() # function to return IP address
 	############################################
-	HTML_first = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
-	availabilitylist_first = availability(room, HTML_first)
 	
 	userList = readIn() # function that reads in data from text file, current a dummy function as users as hard-coded below:
 	
@@ -39,17 +37,19 @@ def main():
 			print "Nothing in the availabilitylist."
 			break
 		else:
-			availabilitylist = analyzeList(availabilitylist)	
+			availabilitylist = analyzeList(availabilitylist)		
 			times = availabilitylist.keys()
 			updatedavailabilitylist = formatAvailabilityList(availabilitylist)
-			studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity using Selenium 
+			studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity 
 	
 	
 	timelist = []
 	for user in userList: # loop restricted by # of users
 		timelist.extend(getconfirm(url, timelist, user, room))
 	print timelist
-	sendEmail("\n".join(timelist))
+	sortedlist = sorttimes(timelist)
+	print sortedlist
+	sendEmail("\n".join(sortedlist))
 	print "Task Successful."
 
 def IPfetch():
@@ -171,7 +171,7 @@ def getDate():
 	now = datetime.datetime.now()
 	startdate=now.strftime("%Y/%m/%d")
 	date = datetime.datetime.strptime(startdate, "%Y/%m/%d")
-	endate = date + datetime.timedelta(days=1)
+	endate = date + datetime.timedelta(days=4)
 	toreturn = endate.strftime("%Y/%m/%d")
 	# Example format = 2014/04/17
 	return toreturn
@@ -203,6 +203,25 @@ def getconfirm(url, timelist, user_info, studyroom):
 	driver.quit() # this closes the browser
 	print confirmationlist
 	return confirmationlist
+
+def sorttimes(timelist):
+	newdict=dict()
+	toreturn = list()
+	if not timelist:
+		print "Error, nothing to confirm"
+		sys.exit()
+	else:
+		for index in range(len(timelist)):
+				spot1 = timelist[index].find("Room")
+				temp = str(timelist[index][spot1 + 9 : spot1 + 19].translate(None, ' Reserved'))
+				checkab = len(temp) - len(temp.lstrip())
+				temp = temp[checkab:]
+				print temp
+				td1 = datetime.datetime.strptime(temp, '%I:%M%p') 
+				newdict[td1] = timelist[index]
+	for key in sorted(newdict):
+		toreturn.append(newdict[key])
+    	return toreturn
 
 if __name__ == "__main__":
 	main()
