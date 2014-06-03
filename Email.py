@@ -15,7 +15,7 @@ def sendEmail(formatted_times):
 	length = len(formatted_times)
 
 	gmail_user = "mcgoga12@wfu.edu"
-	gmail_password = "boeing767" #secret key 
+	gmail_password = "#" #secret key 
 
 	FROM = gmail_user
 	TO = ['slagswfu@googlegroups,com', 'mcgoga12@wfu.edu']
