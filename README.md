@@ -6,7 +6,6 @@ An automated web-crawler hosted through Heroku whose purpose is to book study ro
 It makes use of phantomJS web stack. We first elected to use Selenium webdriver but ran into performance issues since it required a browser to be opened while running. We then switched to phantomJS because it is headless.
 
 Requirements
-
 ========
 
 Python 2.7
