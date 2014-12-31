@@ -1,21 +1,27 @@
 #!/usr/bin/python
 
-# StudyBug 
-# Written and Bred by Grant McGovern, Gaurav Sheni, Nate DeHorn 
-# <-- Written in the Python Language --> #
+# Name: StudyBug 
+# Author(s): Grant McGovern, Gaurav Sheni, Nate Dehorn 
+# Date: 16 March 2013
+#
+# URL: www.github.com/g12mcgov/studybug
+#
+#
+
 import datetime 
 import sys 
 import urllib2 # library to work with URLs (helps go out to make the URL hit)
 import socket # used to get IP address
 import operator
-import os
-from Credentials import * #stores information regarding usernames and passwords 
-from Email import *
-from bs4 import BeautifulSoup 
-import re
+from emailsend import *
+from credentials import * #stores information regarding usernames and passwords 
 from splinter import Browser
+from bs4 import BeautifulSoup 
 from collections import OrderedDict
 from pyvirtualdisplay import Display
+
+## Changed to CSV instead of TXT 
+import csv
 
 def main():
 	date = getDate() # must make a call to get date and pass into URL to update with day 
@@ -24,6 +30,7 @@ def main():
 	room = "room-" + "225" 
 	availabilitylist = [] * 48
 	temp = []
+	
 	############################################
 	IPfetch() # function to return IP address
 	############################################
@@ -90,6 +97,7 @@ def analyzeList(availabilitylist): #reads in the list of available times (HTML s
 			temp = temp[checkab:]
 			td1 = datetime.datetime.strptime(temp, '%I:%M %p') 
 			newdict[td1] = availabilitylist[index]
+
 	times =  newdict.keys()
 	times.sort()
 	toreturn = dict((k, v) for k, v in newdict.iteritems() if k in times) # [0:4]
@@ -155,16 +163,18 @@ def writeOut(availability, PATH): # function used to write out to text file
 		f.write(string)
 
 def readIn():
-	userinfo = []
-	with open("credentials.txt") as fp:
-		for line in fp:
-			userinfo.append(line.rstrip())
+	## Contains generated user objects
 	userlist = []
-	it = iter(userinfo)
-	for x in it:
-		temp = User(x, next(it))
-		userlist.append(temp)
-	#print "Total User Count: %d \n" % User.global_count # displays the amount of current users 
+
+	with open("credentials.csv") as csvfile:
+		credentials_reader = csv.reader(csvfile, delimiter=',')
+		for row in credentials_reader:
+			## Check for white space in csv file
+			if row:
+				userlist.append(User(row[0], row[1]))
+			else:
+				pass
+
 	return userlist
 
 def getDate():

@@ -1,9 +1,5 @@
 #### Header file that contains Student's usernames and passwords
 
-import datetime 
-import sys 
-
-
 class User:
 
 	global_count = 0 # keeps track of a global count of how many Keys have been used 
