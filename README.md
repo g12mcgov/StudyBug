@@ -5,6 +5,13 @@ An automated web-crawler hosted through Heroku whose purpose is to book study ro
 
 It makes use of phantomJS web stack. We first elected to use Selenium webdriver but ran into performance issues since it required a browser to be opened while running. We then switched to phantomJS because it is headless.
 
+Result
+========
+
+When it successfully runs, it sends subscribed users an email with a log of what room(s) it booked and times. Check it out:
+
+![demoPic](http://i1158.photobucket.com/albums/p618/g12mcgov/Screenshot2014-12-30205254.png)
+
 Requirements
 ========
 
