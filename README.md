@@ -22,7 +22,7 @@ However, StudyBug V2 books studyrooms much differently. Here's how it works:
   * 8) Checks to see which rooms we reserved 
   * 9) Sends an email with the successfully reserved rooms
   
-Depending on the machine running StudyBug, performance is largely bounded by CPU power. This is because the <code>multiprocessing</code> module distributed workload across each core.
+Depending on the machine running StudyBug, performance is largely bounded by CPU power. This is because the <code>multiprocessing</code> module distributes workload across each core.
 
 Installing:
 ========
