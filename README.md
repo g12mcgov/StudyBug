@@ -106,5 +106,5 @@ Result
 
 When StudyBug successfully runs, it sends subscribed users an email with a log of what room(s) it booked and times. Check it out:
 
-![demoPic](http://i1158.photobucket.com/albums/p618/g12mcgov/Screenshot2014-12-30205254.png)
+![demoPic](http://i1158.photobucket.com/albums/p618/g12mcgov/Screenshot2015-01-08000615.png)
 
