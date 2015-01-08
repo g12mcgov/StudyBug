@@ -19,7 +19,7 @@ def sendEmail(confirmationList, room):
 	length = len(confirmationList)
 
 	gmail_user = "studybugauto@gmail.com"
-	gmail_password = "grantmcgovern1" #secret key 
+	gmail_password = "******" #secret key 
 
 	FROM = gmail_user
 	TO = ['mcgoga12@wfu.edu']
