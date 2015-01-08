@@ -12,7 +12,7 @@ One the of the inherit problems with StudyBug V1 was that it was slow because it
 
 However, StudyBug V2 books studyrooms much differently. Here's how it works:
 
-  * 1) Scrapes zsr website for HTML
+  * 1) Scrapes ZSR website for HTML
   * 2) Parses HTML, finding open rooms
   * 3) Divides list of open rooms into chunks of 4
   * 4) Assigns a chunk to each user 
