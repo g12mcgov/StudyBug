@@ -3,23 +3,27 @@
 # This file is simply designed to contain the email:
 import smtplib
 import time
+import logging
 import datetime
+from smtplib import SMTPException
 
-def sendEmail(formatted_times):
+def sendEmail(confirmationList, room):
 	now = datetime.datetime.now()
-	startdate=now.strftime("%m/%d/%Y")
+	
+	startdate = now.strftime("%m/%d/%Y")
 	date = datetime.datetime.strptime(startdate, "%m/%d/%Y")
+	
 	endate = date + datetime.timedelta(days=4)
 	newdate = endate.strftime("%m/%d/%Y")
 
-	length = len(formatted_times)
+	length = len(confirmationList)
 
-	gmail_user = "mcgoga12@wfu.edu"
-	gmail_password = "#" #secret key 
+	gmail_user = "studybugauto@gmail.com"
+	gmail_password = "grantmcgovern1" #secret key 
 
 	FROM = gmail_user
-	TO = ['slagswfu@googlegroups,com', 'mcgoga12@wfu.edu']
-	SUBJECT = "StudyBug - Study Rooms for %s" % newdate
+	TO = ['mcgoga12@wfu.edu']
+	SUBJECT = "StudyBug - Study Rooms for %s (%s)" % (newdate, room)
 	TEXT = """
 This is an automated email from StudyBug.
 
@@ -32,12 +36,14 @@ Thank You,
 StudyBug 
 
 -----------------------------------------------------------------------------------------------
-Developed with Love by Grant McGovern, Gaurav Sheni, & Nate DeHorn 
+Developed by Grant McGovern & Gaurav Sheni
 -----------------------------------------------------------------------------------------------
 
 Check out the project page!: https://github.com/g12mcgov/StudyBug
 
-""" % (newdate, formatted_times) #"\n".join(formatted_times)  
+~ a grantmcgovern build ~	
+
+""" % (newdate, '\n'.join(confirmationList).replace('Reserved: ', '').encode('utf-8')) 
 
 	message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
 	""" %(FROM, ",".join(TO), SUBJECT, TEXT)
@@ -46,9 +52,10 @@ Check out the project page!: https://github.com/g12mcgov/StudyBug
 		server = smtplib.SMTP('smtp.gmail.com:587')
 		server.ehlo()
 		server.starttls()
-		server.login(gmail_user,gmail_password)
+		server.login(gmail_user, gmail_password)
 		server.sendmail(FROM, TO, message)
-		#server.quit()
 		server.close()
-	except:
-		print "Failed to send mail."
+	except SMTPException as err:
+		logging.error("ERR: Could not send mail")
+		logging.error(err)
+

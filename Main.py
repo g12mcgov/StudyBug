@@ -1,239 +1,359 @@
 #!/usr/bin/python
 
 # Name: StudyBug 
-# Author(s): Grant McGovern, Gaurav Sheni, Nate Dehorn 
+# Author(s): Grant McGovern & Gaurav Sheni
 # Date: 16 March 2013
 #
 # URL: www.github.com/g12mcgov/studybug
 #
 #
 
-import datetime 
-import sys 
-import urllib2 # library to work with URLs (helps go out to make the URL hit)
-import socket # used to get IP address
+import os
+import csv
+import sys
+import time 
+import socket
+import urllib2
+import logging
 import operator
-from emailsend import *
-from credentials import * #stores information regarding usernames and passwords 
-from splinter import Browser
-from bs4 import BeautifulSoup 
+import datetime
+import simplejson
+import ConfigParser
+from timeit import Timer 
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from multiprocessing import Pool 
 from collections import OrderedDict
 from pyvirtualdisplay import Display
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException
 
-## Changed to CSV instead of TXT 
-import csv
+sys.path.append('helpers')
+
+## Local Includes ##
+from user import User
+from schema import XPathSchema
+from emailsend import sendEmail
+from helpers.helper import chunk, parseTime
 
 def main():
-	date = getDate() # must make a call to get date and pass into URL to update with day 
-	### DO NOT CHANGE ### CONSTANTS ###:
-	url = "http://zsr.wfu.edu/studyrooms/%s" % date # passes in the date string to append to URL 
-	room = "room-" + "225" 
-	availabilitylist = [] * 48
-	temp = []
+	# To indicate a new log-block
+	logger.info("//NEW LOG BLOCK --------------------")
 	
-	############################################
-	IPfetch() # function to return IP address
-	############################################
-	
-	userList = readIn() # function that reads in data from text file, current a dummy function as users as hard-coded below:
-	
-	for user in userList: # loop restricted by # of users
-		HTML = htmlFetch(url) # grabs the HTML to see if rooms are available using BeautifulSoup
-		availabilitylist = availability(room, HTML)
-		if not availabilitylist:
-			print "Nothing in the availabilitylist."
-			break
-		else:
-			availabilitylist = analyzeList(availabilitylist)		
-			times = availabilitylist.keys()
-			updatedavailabilitylist = formatAvailabilityList(availabilitylist)
-			studyBug(url ,updatedavailabilitylist, user) # function that kicks off the Web-Interactivity 
-	
-	
-	timelist = []
-	for user in userList: # loop restricted by # of users
-		timelist.extend(getconfirm(url, timelist, user, room))
-	print timelist
-	sortedlist = sorttimes(timelist)
-	print sortedlist
-	sendEmail("\n".join(sortedlist))
-	print "Task Successful."
+	log_start = datetime.datetime.now()
+	logger.info(" Beginning StudyBug at " + str(log_start))
 
+	global url
+	global failed
+
+	failed = []
+
+	# Get date 5 days ahead
+	date = getDate()
+	date = "2015/01/08"
+
+	# Setup our configuration parameters 
+	configs = getConfig()
+	url = str(configs[0] + date)
+	room = "room-" + str(configs[1])
+	startTime = str(configs[2])
+	endTime = str(configs[3])
+	
+	# Reads in user info
+	rows = readIn()
+
+	# Pulls down HTML
+	HTML = htmlFetch(url)
+	
+	# Discovers available rooms
+	rooms = availability(room, HTML, startTime, endTime)
+
+	# Create a threading pool
+	if not rooms:
+		logging.warning("No available rooms at all")
+		return
+
+	users = matchUsers(rows, rooms)
+	
+	if not users:
+	 	logging.warning("No rooms for time constraint")
+	 	return
+	 	
+	else:	
+	 	pool = Pool(processes=7)
+	 	pool.map(bookRooms, users)
+
+	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
+
+	# Lastly, confirm our reservations
+	confirm(url, room, rows)
+
+	logger.info("--------------------")
+
+def bookRooms(user):
+	logging.info("Booking rooms for user " + str(user.username))
+	if not user:
+		logging.error("No available for times for user: " + str(user.username))
+	else:
+		driver = webdriver.PhantomJS()
+		driver.get(url)
+
+		# This is a PhantomJS but remedied by the following method call... should 
+		# look into a fix for this.
+		driver.set_window_size(2000, 2000)
+
+		if len(user.xpath) > 0:
+			for item in user.xpath:
+				try:
+					# Xpath looks like this: //*[@id=room-225]/dd[5]
+					element = driver.find_element_by_xpath(item['xpath'])
+					element.click()
+				except NoSuchElementException:
+					logging.error("Couldn't click on element" + str(item['xpath']))
+			try:
+				driver.find_element_by_xpath("id('save')").click()
+
+				user_name_box = driver.find_element_by_id("username")
+				user_name_box.send_keys(user.username)
+
+				password_box = driver.find_element_by_id("password")
+				password_box.send_keys(user.key)
+
+				reserve_button = driver.find_element_by_id("submit")
+				reserve_button.click()
+
+			except:
+				logging.error("Failed at user " + str(user.username))
+				#logging.error()
+				#failed.append(item)
+
+	# Close PhantomJS
+	driver.quit()
+
+# Will eventually be used to change the IP address every time it's run
 def IPfetch():
-	print "Hostname is: " + socket.gethostname() # returns the hostname 
-	print "IP Address is: " + socket.gethostbyname(socket.gethostname()) # returns your current IP address
-	print '\n'
+	hostname = socket.gethostname()
+	ip_address = socket.gethostbyname(socket.gethostname())
+	
+	logging.info("Hostname is: " + hostname)  
+	logging.info("IP Address is: " + ip_address) 
 
-	### This function will eventually be used to change the IP address every time it's run
+	return (hostname, ip_address)
 
-def htmlFetch(url): #must also pass in the path to the writeOut() call
-	print "Beginning a URL hit..."
-	print "URL: " + url + '\n'
-	page = urllib2.urlopen(url) # makes the URL hit
-	soup = BeautifulSoup(page.read()) # reads in the HTML data from the page 
+# Extracts HTML from ZSR Website 
+def htmlFetch(url): 
+	logging.info("Beginning a URL hit on " + url)
+	page = urllib2.urlopen(url) 
+	soup = BeautifulSoup(page.read())
+	
 	return soup
 
-def availability(room, soup):
-	studyroom = room
-	# each of these options stores the potential for being open or not
-	a = []
-	for label in soup.find(id=studyroom).select('li.zone label'):
-		temp = label.get_text()
-		temp = temp.encode('ascii','ignore')
-		a.append(temp)
-	return a
+# Determines what rooms are available
+def availability(room, soup, startTime, endTime):
+	schema = XPathSchema()
+	rooms = []
 
-# Written by Gaurav:
-def analyzeList(availabilitylist): #reads in the list of available times (HTML string) to be sorted 
-	newdict=dict()
-	if not availabilitylist:
-		print "Error, no times available or nothing in availabilitylist."
-		sys.exit()
-	else:
-		for index in range(len(availabilitylist)):
-			spot1 = availabilitylist[index].find("Room")
-			temp = str(availabilitylist[index][spot1 + 9 : spot1 + 19].translate(None, ''))
-			checkab = len(temp) - len(temp.lstrip())
-			temp = temp[checkab:]
-			td1 = datetime.datetime.strptime(temp, '%I:%M %p') 
-			newdict[td1] = availabilitylist[index]
+	# Returns a HTML code block as such:
 
-	times =  newdict.keys()
-	times.sort()
-	toreturn = dict((k, v) for k, v in newdict.iteritems() if k in times) # [0:4]
-	return toreturn
+	# <dd class="cell even open">
+ 	#	<input id="srr-1-1420839000" name="srr-1-1420839000" type="checkbox" value="Y"/>
+ 	#	<label for="srr-1-1420839000">
+  	#		<span class="room-name">
+    #			Room 225
+  	#		</span>
+  	#		<span class="time-slot">
+   	#			4:30 PM
+  	#		</span>
+ 	#	</label>
+ 	#	<i class="drag-handle">
+ 	#	</i>
+	# </dd>
 
-def formatAvailabilityList(updatedavailabilitylist):
-	newlist = OrderedDict(sorted(updatedavailabilitylist.items(), key=operator.itemgetter(0)))
-	sortedtimes = newlist.values()
-	tosend = [] * 4
-	for index in range(len(newlist)):
-		spot = sortedtimes[index].find("Room")
-		temp = str(sortedtimes[index][spot: spot + 19].translate(None, ''))
-		tosend.insert(index,temp)
-	tosend.reverse()
-	return tosend
+	# Find all rooms on the grid which are open
+	blocks = [block for block in soup.find(id=room).select('dd') if "unavailable" not in block.text]
 
-def studyBug(url, tosend, user_info):
-	if len(tosend)<1:
-		"No Times Available"
-		return
-	print "Crawling Site..."
-	driver = Browser('phantomjs')
-	driver.visit(url)
-	# this opens up Chrome
-	print "\n".join(tosend) #formatted to look nice
-	if len(tosend)<1:
-		pass
-	else:
-		xpath1 = "//label[contains(text(),'%s')]/.." % tosend[0]
-		driver.find_by_xpath(xpath1).click()
-	if len(tosend)<2:
-		pass
-	else:
-		xpath2 = "//label[contains(text(),'%s')]/.." % tosend[1]
-		driver.find_by_xpath(xpath2).click()
-	if len(tosend)<3:
-		pass
-	else:
-		xpath3 = "//label[contains(text(),'%s')]/.." % tosend[2]
-		driver.find_by_xpath(xpath3).click()
-	if len(tosend)<4:
-		pass
-	else:
-		xpath4 = "//label[contains(text(),'%s')]/.." % tosend[3]
-		driver.find_by_xpath(xpath4).click()
+	start = parseTime(startTime)
+	end = parseTime(endTime)
+
+	i = 1
 	
-	submit = driver.find_by_id("reserve").click()
-	
-	driver.find_by_name("username").fill(user_info.getusername())
-	print "User: %s" % user_info.getusername()
-	driver.find_by_name("password").fill(user_info.getkey())
-	#print user_info.getkey()
+	for block in blocks:
+		status = ' '.join(block.get('class'))
+		time = block.find('span', {'class': 'time-slot'}).get_text()
 
-	driver.find_by_name("submit").click()
-
-	driver.quit() # this closes the browser
-
-def writeOut(availability, PATH): # function used to write out to text file 
-	time = availability
-	with open(PATH, "wb") as f:
-		#print availability
-		string = str(availability)
-		f.write(string)
-
-def readIn():
-	## Contains generated user objects
-	userlist = []
-
-	with open("credentials.csv") as csvfile:
-		credentials_reader = csv.reader(csvfile, delimiter=',')
-		for row in credentials_reader:
-			## Check for white space in csv file
-			if row:
-				userlist.append(User(row[0], row[1]))
-			else:
+		## Check to make sure room is open 
+		if "open" in status:
+			## Only assign rooms between the above hours
+			if end < parseTime(time) < start:
 				pass
+			else:
+				rooms.append({
+					"room": room,
+					"status": status,
+					"time": time,
+					"xpath": "//*[@id='%s']/dd[%i]" % (room, schema.getXpath(time))
+					})
+		i += 1
 
-	return userlist
+	# Just to see how many rooms were available
+	if len(rooms) < 1:
+		logger.warning(
+			"No available time slots for room: " + room + " between " + startTime + " and " + endTime
+			)
+		logging.warning("Exiting...")
+		return 
+	else:
+		logger.info(" Total available time slots: " + str(len(rooms)))
 
+
+	# Returns a list of dicts of rooms as such:
+	# {'status': u'cell odd open', 'xpath': "id('room-203a')/x:dd[17]", 'room': 'room-225', 'time': u'4:00 PM'} 
+	# {'status': u'cell even open', 'xpath': "id('room-203a')/x:dd[18]", 'room': 'room-225', 'time': u'4:30 PM'} 
+	return rooms
+
+## Assigns 6 timeslots to each user
+def matchUsers(rows, rooms):
+	## Check for white space in csv file
+	rooms = chunk(rooms, 3)
+	
+	userdicts = []
+	
+	for row, room in zip(rows, rooms):
+		userdicts.append({
+				"username": row[0], 
+				"password": row[1], 
+				"xpath": room
+			})
+
+	# Create a list of users, based on the above dict
+	Users = [User(dictionary) for dictionary in userdicts]
+
+	return Users
+
+## Calculates next available date (5 days ahead) 
 def getDate():
 	now = datetime.datetime.now()
-	startdate=now.strftime("%Y/%m/%d")
+	startdate = now.strftime("%Y/%m/%d")
+	
 	date = datetime.datetime.strptime(startdate, "%Y/%m/%d")
 	endate = date + datetime.timedelta(days=4)
-	toreturn = endate.strftime("%Y/%m/%d")
+	
+	formattedTime = endate.strftime("%Y/%m/%d")
+	
 	# Example format = 2014/04/17
-	return toreturn
+	return formattedTime
 
-def getconfirm(url, timelist, user_info, studyroom):
-	logurl = "https://zsr.wfu.edu/studyrooms/login"
-	print "\n"
-	print "Confirming..."
-	driver = Browser('phantomjs')
-	driver.visit(logurl)
+## Read in user credentials from config file and create user Objects
+def readIn():
 
-	driver.find_by_name("username").fill(user_info.getusername())
-	print "Checking... %s" % user_info.getusername()
-	driver.find_by_name("password").fill(user_info.getkey())
-	print "Checking... %s" % abs(hash(user_info.getkey())) # uses a cheap hash to mask user password 
-
-	driver.find_by_name("submit").click()
-	date = getDate()
-	daytclick = driver.visit(url)
-	source = driver.html
-	soup = BeautifulSoup(source) # reads in the HTML data from the page 
+	with open("credentials/credentials.csv") as csvfile:
+		credentials_reader = csv.reader(csvfile, delimiter=',')
+		rows = [row for row in credentials_reader]
 	
+	# Returns the rows of the credentials csv file:
+	# 
+	# [
+	#	mcgoga12, changeme
+	#	guarav12, changeme1
+	#	ben1234, changeme2
+	# ]
+	#		
+	return rows
+
+## Setsup a logger for the entire application to use
+def configLogger():
+	global logger
+	## Make it so that all methods can reach it
+	logger = logging.getLogger('studybug')
+	handler = logging.FileHandler('log/logs/studybug.log')
+	
+	formatter = logging.Formatter(
+		'%(asctime)s [ %(threadName)s ] [ %(levelname)s ] : %(message)s',
+		'%Y-%m-%d %H:%M:%S'
+		)
+	
+	handler.setFormatter(formatter)
+	
+	logger.addHandler(handler) 
+	logger.setLevel(logging.DEBUG) 
+
+	sendToLoggly()
+
+## Sets up config for program
+def getConfig():
+	config = ConfigParser.RawConfigParser()
+	config.readfp(open('config/studybug.cfg'))
+
+	url = config.get('studybug', 'URL')
+	room = config.get('studybug', 'ROOM')
+	startTime = config.get('studybug', 'START_TIME')
+	endTime = config.get('studybug', 'END_TIME')
+
+	return (url, room, startTime, endTime)
+
+## Sends log data to Loggly via their API
+def sendToLoggly():
+	log_data = "PLAINTEXT=" + urllib2.quote(simplejson.dumps(
+	{
+	   'hoover':'beaver',
+	   'ice':{
+	        'ice':'baby'
+	   }
+	}))
+	urllib2.urlopen("https://logs-01.loggly.com/inputs/65f419af-5bdb-489d-97b2-dd4883dad10a/tag/python/", log_data)
+
+## Individually logs into each user account and confirms their reservation
+def confirm(url, room, rows):
+	logger.info("Confirming...")
+
 	confirmationlist = []
-	
-	for label in soup.find(id=studyroom).select('li.zone label'):
-		temp = label.get_text()
-		temp = temp.encode('ascii','ignore')
-		confirmationlist.append(temp)
-	driver.quit() # this closes the browser
-	print confirmationlist
-	return confirmationlist
 
-def sorttimes(timelist):
-	newdict=dict()
-	toreturn = list()
-	if not timelist:
-		print "Error, nothing to confirm"
-		sys.exit()
-	else:
-		for index in range(len(timelist)):
-				spot1 = timelist[index].find("Room")
-				temp = str(timelist[index][spot1 + 9 : spot1 + 19].translate(None, ' Reserved'))
-				checkab = len(temp) - len(temp.lstrip())
-				temp = temp[checkab:]
-				print temp
-				td1 = datetime.datetime.strptime(temp, '%I:%M%p') 
-				newdict[td1] = timelist[index]
-	for key in sorted(newdict):
-		toreturn.append(newdict[key])
-    	return toreturn
+	for row in rows:
+		username = row[0]
+		password = row[1]
+
+		driver = webdriver.PhantomJS()
+
+		# This is a PhantomJS but remedied by the following method call... should 
+		# look into a fix for this.
+		driver.set_window_size(2000, 2000)
+
+		driver.get("https://zsr.wfu.edu/studyrooms/login")
+		logger.info("Checking user " + username)
+
+		username_box = driver.find_element_by_name("username")
+		username_box.send_keys(username)
+		
+		password_box = driver.find_element_by_name("password")
+		password_box.send_keys(password)
+		
+		driver.find_element_by_name("submit").click()
+
+		driver.get(url)
+
+		html = driver.page_source
+		soup = BeautifulSoup(html) 
+		
+		#confirmationlist = [reservation for reservation in soup.find(id=room).select('dd') if "current" in reservation.text]
+		
+		for reservation in soup.find(id=room).select('dd'):
+			class_name = ' '.join(reservation.get('class'))
+			# Checks to see if WE in fact reserved that room
+			if "current_user_reservations" in class_name:
+				confirmationlist.append(reservation.get_text())
+
+		# Nasty-ass xpath... no idea why the normal minified one won't work
+		logout_button = driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[1]/ul/li[3]/a")
+		logout_button.click()
+	
+	
+		driver.quit()
+
+	# Send email with our reserved rooms
+	sendEmail(confirmationlist, room)
+	
+	return
 
 if __name__ == "__main__":
+	configLogger()
 	main()
-
- 
