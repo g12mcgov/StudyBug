@@ -99,7 +99,7 @@ This is a block taken when all the rooms were booked between the designated time
 
 These logs are stored in the <code>log/logs</code> directory, under the alias <code>studybug.log</code>.
 
-StudyBug will also soon have feed to [Loggly](https://www.loggly.com/), so we can monitor our logs in the cloud and see specific metrics. This is currently being setup and will be implemented shortly.
+StudyBug will also soon feed to [Loggly](https://www.loggly.com/), so we can monitor our logs in the cloud and see specific metrics. This is currently being setup and will be implemented shortly.
 
 Result
 ========
