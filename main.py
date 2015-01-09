@@ -95,7 +95,6 @@ def main():
 	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
 
 	# Lastly, confirm our reservations
-	print room
 	confirmed_times = confirm(url, room, rows)
 	# Send email with our reserved rooms
 	sendEmail(confirmed_times, room, email, password)
