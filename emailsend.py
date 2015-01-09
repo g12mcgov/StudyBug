@@ -33,17 +33,17 @@ def sendEmail(confirmationList, room, email, password):
 
 	length = len(confirmationList)
 
-<<<<<<< HEAD
 	gmail_user = email
 	gmail_password = password
-=======
-	gmail_user = "studybugauto@gmail.com"
-	gmail_password = "******" #secret key 
->>>>>>> 131ecb95ed420e3df4fc64740056728d598c2ec2
+
+	if confirmationList:
+		confirmed_rooms = confirmationList
+	else:
+		confirmed_rooms = ""
 
 	FROM = gmail_user
 	TO = ['mcgoga12@wfu.edu']
-	SUBJECT = "StudyBug - Study Rooms for %s (%s)" % (newdate, room)
+	SUBJECT = "StudyBug - Study Rooms for %s" % newdate
 	TEXT = """
 This is an automated email from StudyBug.
 
@@ -63,7 +63,7 @@ Check out the project page!: https://github.com/g12mcgov/StudyBug
 
 ~ a grantmcgovern build ~	
 
-""" % (newdate, '\n'.join(confirmationList).replace('Reserved: ', '').encode('utf-8')) 
+""" % (newdate, '\n'.join(confirmed_rooms).replace('Reserved: ', '').encode('utf-8')) 
 
 	message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
 	""" %(FROM, ",".join(TO), SUBJECT, TEXT)

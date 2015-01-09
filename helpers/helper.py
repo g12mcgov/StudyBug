@@ -22,12 +22,9 @@ import datetime
 #
 #	>> [[1,2,3,4], [4,5,6,7]]
 #
-def chunk(seq, size):
-        newseq = []
-        splitsize = 1.0 / size * len(seq)
-        for i in range(size):
-                newseq.append(seq[int(round(i*splitsize)):int(round((i+1)*splitsize))])
-        return newseq
+
+def chunk(input_list, n):
+	return [input_list[x:x+n] for x in range(0, len(input_list), n)]
 
 # Given a string time input, returns a datetime object
 def parseTime(string):

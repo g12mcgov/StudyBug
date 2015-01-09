@@ -79,8 +79,8 @@ def main():
 
 	users = matchUsers(rows, rooms)
 
-	#for user in users:
-	#	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
+	for user in users:
+		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
@@ -255,10 +255,13 @@ def availability(room, soup, startTime, endTime):
 	# {'status': u'cell even open', 'xpath': "id('room-203a')/x:dd[18]", 'room': 'room-225', 'time': u'4:30 PM'} 
 	return rooms
 
-## Assigns 6 timeslots to each user
+## Assigns 4 timeslots to each user
 def matchUsers(rows, rooms):
 	## Check for white space in csv file
-	rooms = chunk(rooms, 3)
+	rooms = chunk(rooms, 4)
+
+	for room in rooms:
+		print room
 	
 	userdicts = []
 
@@ -271,6 +274,12 @@ def matchUsers(rows, rooms):
 
 	# Create a list of users, based on the above dict
 	Users = [User(dictionary) for dictionary in userdicts]
+
+	for user in Users:
+		if user.xpath:
+			logger.info(" assigned " + str(len(user.xpath)) + " chunks to " + user.username)
+		else:
+			logger.info(" did not assign any chunks to " + user.username)
 
 	return Users
 
@@ -361,10 +370,10 @@ def confirm(url, room, rows):
 
 		html = driver.page_source
 		soup = BeautifulSoup(html) 
-		
+	
 		#confirmationlist = [reservation for reservation in soup.find(id=room).select('dd') if "current" in reservation.text]
-		
-		for reservation in soup.find(id=room).select('dd'):
+
+		for reservation in soup.find(id=str(room['room'])).select('dd'):
 			class_name = ' '.join(reservation.get('class'))
 			# Checks to see if WE in fact reserved that room
 			if "current_user_reservations" in class_name:

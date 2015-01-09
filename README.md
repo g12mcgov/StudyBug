@@ -85,7 +85,6 @@ Logging
 
 StudyBug V2 makes extensive use of logging, making it now easier to track any bugs/failed bookings. Each time the script is run, it generates a log block, tracking the flow of methods throughout the script. An example is attached below:
 
-
     	2015-01-08 22:21:30 [ MainThread ] [ INFO ] : -------- NEW LOG BLOCK ---------------
 		2015-01-08 22:21:30 [ MainThread ] [ INFO ] :  beginning StudyBug at 2015-01-08 22:21:30.858987
 		2015-01-08 22:21:30 [ MainThread ] [ INFO ] :  requesting http://zsr.wfu.edu/studyrooms/2015/01/12
