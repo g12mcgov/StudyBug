@@ -1,13 +1,28 @@
 #!/usr/bin/python
 
-# This file is simply designed to contain the email:
+# Name: StudyBug 
+# File: /StudyBug/emailsend.py
+#
+# Author(s): Grant McGovern
+# Date: Tue 6 Jan 2015 
+#
+# URL: www.github.com/g12mcgov/studybug
+#
+# ~ Setups the email template and functionality ~
+#
+#
+
 import smtplib
 import time
 import logging
 import datetime
 from smtplib import SMTPException
+from log.log import configLogger
 
-def sendEmail(confirmationList, room):
+logger = logging.getLogger('root')
+
+def sendEmail(confirmationList, room, email, password):
+	logger.info(" sending email...")
 	now = datetime.datetime.now()
 	
 	startdate = now.strftime("%m/%d/%Y")
@@ -18,8 +33,8 @@ def sendEmail(confirmationList, room):
 
 	length = len(confirmationList)
 
-	gmail_user = "studybugauto@gmail.com"
-	gmail_password = "grantmcgovern1" #secret key 
+	gmail_user = email
+	gmail_password = password
 
 	FROM = gmail_user
 	TO = ['mcgoga12@wfu.edu']
@@ -55,7 +70,9 @@ Check out the project page!: https://github.com/g12mcgov/StudyBug
 		server.login(gmail_user, gmail_password)
 		server.sendmail(FROM, TO, message)
 		server.close()
+
+		logger.info(" successfully sent mail")
 	except SMTPException as err:
-		logging.error("ERR: Could not send mail")
-		logging.error(err)
+		logger.error("ERR: could not send mail")
+		logger.error(err)
 

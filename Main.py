@@ -25,32 +25,33 @@ from selenium import webdriver
 from multiprocessing import Pool 
 from collections import OrderedDict
 from pyvirtualdisplay import Display
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support import expected_conditions as EC
 
 sys.path.append('helpers')
+sys.path.append('log')
 
 ## Local Includes ##
 from user import User
 from schema import XPathSchema
 from emailsend import sendEmail
+from log.log import configLogger
 from helpers.helper import chunk, parseTime
 
 def main():
 	# To indicate a new log-block
-	logger.info("//NEW LOG BLOCK --------------------")
+	logger.info("-------- NEW LOG BLOCK ---------------")
 	
 	log_start = datetime.datetime.now()
-	logger.info(" Beginning StudyBug at " + str(log_start))
+	logger.info(" beginning StudyBug at " + str(log_start))
 
 	global url
-	global failed
-
-	failed = []
+	global selenium_timeout
 
 	# Get date 5 days ahead
 	date = getDate()
-	date = "2015/01/08"
 
 	# Setup our configuration parameters 
 	configs = getConfig()
@@ -58,6 +59,9 @@ def main():
 	room = "room-" + str(configs[1])
 	startTime = str(configs[2])
 	endTime = str(configs[3])
+	selenium_timeout = int(configs[4])
+	email = str(configs[5])
+	password = str(configs[6])
 	
 	# Reads in user info
 	rows = readIn()
@@ -70,30 +74,37 @@ def main():
 
 	# Create a threading pool
 	if not rooms:
-		logging.warning("No available rooms at all")
+		logger.warning(" no available rooms at all")
 		return
 
 	users = matchUsers(rows, rooms)
+
+	#for user in users:
+	#	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
 	if not users:
-	 	logging.warning("No rooms for time constraint")
+	 	logger.warning(" no rooms for time constraint")
 	 	return
 	 	
-	else:	
-	 	pool = Pool(processes=7)
+	else:
+		logger.info(" total users: " + str(len(users)))
+		logger.info(" creating thread pool... ")	
+	 	pool = Pool(processes=4)
 	 	pool.map(bookRooms, users)
 
 	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
 
 	# Lastly, confirm our reservations
-	confirm(url, room, rows)
+	confirmed_times = confirm(url, room, rows)
+	# Send email with our reserved rooms
+	sendEmail(confirmed_times, room, email, password)
 
 	logger.info("--------------------")
 
 def bookRooms(user):
-	logging.info("Booking rooms for user " + str(user.username))
+	logger.info(" " + user.username + " - booking rooms")
 	if not user:
-		logging.error("No available for times for user: " + str(user.username))
+		logger.error(" " + user.username + " - NO AVAILABLE TIMES")
 	else:
 		driver = webdriver.PhantomJS()
 		driver.get(url)
@@ -102,30 +113,63 @@ def bookRooms(user):
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 
-		if len(user.xpath) > 0:
-			for item in user.xpath:
+		wait = WebDriverWait(driver, selenium_timeout)
+
+		if not user.xpath:
+			pass
+		else:
+			success = False
+
+			# Sometimes Selenium will load the page faster than the javascript
+			# or sometimes the web page will timeout (most likely due to connection
+			# issues). This way, we keep trying, but if we have success, we break out.
+			for attempt in range(10):
+				for item in user.xpath:
+					try:
+						logger.info(" " + user.username + " - clicking on individual rooms...")
+						logger.info(" " + user.username + " - clicking on " + item['xpath'])
+						
+						# Xpath looks like this: //*[@id=room-225]/dd[5]
+						element = wait.until(EC.presence_of_element_located((By.XPATH, item['xpath'])))
+						#element = driver.find_element_by_xpath(str(item['xpath']))
+						element.click()
+
+						success = True
+						logger.info(" " + user.username + " - successfully clicked on all rooms")		
+
+					except NoSuchElementException:
+						logger.error(" " + user.username + "- COULDN'T CLICK ON ELEMENT " + str(item['xpath']))
 				try:
-					# Xpath looks like this: //*[@id=room-225]/dd[5]
-					element = driver.find_element_by_xpath(item['xpath'])
-					element.click()
-				except NoSuchElementException:
-					logging.error("Couldn't click on element" + str(item['xpath']))
-			try:
-				driver.find_element_by_xpath("id('save')").click()
+					logger.info(" " + user.username + " - clicking on save for user")
 
-				user_name_box = driver.find_element_by_id("username")
-				user_name_box.send_keys(user.username)
+					save_box = wait.until(EC.presence_of_element_located((By.XPATH, "id('save')")))
+					#driver.find_element_by_xpath("id('save')").click()
+					save_box.click()
 
-				password_box = driver.find_element_by_id("password")
-				password_box.send_keys(user.key)
+					logger.info(" " + user.username + " - filling in username ")
+					user_name_box = wait.until(EC.presence_of_element_located((By.ID, "username")))
+					#user_name_box = driver.find_element_by_id("username")
+					user_name_box.send_keys(user.username)
 
-				reserve_button = driver.find_element_by_id("submit")
-				reserve_button.click()
+					logger.info(" " + user.username + " - filling in password ")
+					password_box = wait.until(EC.presence_of_element_located((By.ID, "password")))
+					#password_box = driver.find_element_by_id("password")
+					password_box.send_keys(user.key)
 
-			except:
-				logging.error("Failed at user " + str(user.username))
-				#logging.error()
-				#failed.append(item)
+					logger.info(" " + user.username + " - clicking on submit ")
+					reserve_button = wait.until(EC.presence_of_element_located((By.ID, "submit")))
+					#reserve_button = driver.find_element_by_id("submit")
+					reserve_button.click()
+
+					if success == True: break
+
+				except NoSuchElementException as err:
+					logger.error(" " + user.username + "FAILED")
+					logger.error(err)
+
+				except TimeoutException as err:
+					logger.error(" " + user.username + "FAILED")
+					logger.error(err)
 
 	# Close PhantomJS
 	driver.quit()
@@ -135,14 +179,14 @@ def IPfetch():
 	hostname = socket.gethostname()
 	ip_address = socket.gethostbyname(socket.gethostname())
 	
-	logging.info("Hostname is: " + hostname)  
-	logging.info("IP Address is: " + ip_address) 
+	logger.info(" hostname: " + hostname)  
+	logger.info(" IP address: " + ip_address) 
 
 	return (hostname, ip_address)
 
 # Extracts HTML from ZSR Website 
 def htmlFetch(url): 
-	logging.info("Beginning a URL hit on " + url)
+	logger.info(" requesting " + url)
 	page = urllib2.urlopen(url) 
 	soup = BeautifulSoup(page.read())
 	
@@ -198,12 +242,12 @@ def availability(room, soup, startTime, endTime):
 	# Just to see how many rooms were available
 	if len(rooms) < 1:
 		logger.warning(
-			"No available time slots for room: " + room + " between " + startTime + " and " + endTime
+			" no available time slots for room: " + room + " between " + startTime + " and " + endTime
 			)
-		logging.warning("Exiting...")
+		logger.warning("Exiting...")
 		return 
 	else:
-		logger.info(" Total available time slots: " + str(len(rooms)))
+		logger.info(" total available time slots: " + str(len(rooms)))
 
 
 	# Returns a list of dicts of rooms as such:
@@ -217,8 +261,8 @@ def matchUsers(rows, rooms):
 	rooms = chunk(rooms, 3)
 	
 	userdicts = []
-	
-	for row, room in zip(rows, rooms):
+
+	for row, room in map(None, rows, rooms):
 		userdicts.append({
 				"username": row[0], 
 				"password": row[1], 
@@ -260,25 +304,6 @@ def readIn():
 	#		
 	return rows
 
-## Setsup a logger for the entire application to use
-def configLogger():
-	global logger
-	## Make it so that all methods can reach it
-	logger = logging.getLogger('studybug')
-	handler = logging.FileHandler('log/logs/studybug.log')
-	
-	formatter = logging.Formatter(
-		'%(asctime)s [ %(threadName)s ] [ %(levelname)s ] : %(message)s',
-		'%Y-%m-%d %H:%M:%S'
-		)
-	
-	handler.setFormatter(formatter)
-	
-	logger.addHandler(handler) 
-	logger.setLevel(logging.DEBUG) 
-
-	sendToLoggly()
-
 ## Sets up config for program
 def getConfig():
 	config = ConfigParser.RawConfigParser()
@@ -288,8 +313,11 @@ def getConfig():
 	room = config.get('studybug', 'ROOM')
 	startTime = config.get('studybug', 'START_TIME')
 	endTime = config.get('studybug', 'END_TIME')
+	selenium_timeout = config.get('studybug', 'SELENIUM_TIMEOUT')
+	email = config.get('studybug', 'EMAIL')
+	password = config.get('studybug', 'PASSWORD')
 
-	return (url, room, startTime, endTime)
+	return (url, room, startTime, endTime, selenium_timeout, email, password)
 
 ## Sends log data to Loggly via their API
 def sendToLoggly():
@@ -304,7 +332,7 @@ def sendToLoggly():
 
 ## Individually logs into each user account and confirms their reservation
 def confirm(url, room, rows):
-	logger.info("Confirming...")
+	logger.info(" confirming...")
 
 	confirmationlist = []
 
@@ -319,7 +347,7 @@ def confirm(url, room, rows):
 		driver.set_window_size(2000, 2000)
 
 		driver.get("https://zsr.wfu.edu/studyrooms/login")
-		logger.info("Checking user " + username)
+		logger.info(" checking user " + username + "...")
 
 		username_box = driver.find_element_by_name("username")
 		username_box.send_keys(username)
@@ -341,6 +369,7 @@ def confirm(url, room, rows):
 			# Checks to see if WE in fact reserved that room
 			if "current_user_reservations" in class_name:
 				confirmationlist.append(reservation.get_text())
+				logger.info(" " + username + " booked " + reservation.get_text())
 
 		# Nasty-ass xpath... no idea why the normal minified one won't work
 		logout_button = driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[1]/ul/li[3]/a")
@@ -348,12 +377,10 @@ def confirm(url, room, rows):
 	
 	
 		driver.quit()
-
-	# Send email with our reserved rooms
-	sendEmail(confirmationlist, room)
 	
-	return
+	return confirmationlist
 
 if __name__ == "__main__":
-	configLogger()
+	# Declare our root logger
+	logger = configLogger("root")
 	main()
