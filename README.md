@@ -3,7 +3,7 @@
 
 An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the [Z. Smith Reynold's Library](https://zsr.wfu.edu/) at Wake Forest University, Winston-Salem, NC. This project was built as an academic resource and in no way designed to be malicious. 
 
-Architecture
+Overview
 ========
 
 StudyBug makes use of the [PhantomJS](http://phantomjs.org/) web stack. PhantomJS can now be piggybacked off of [Selenium](http://www.seleniumhq.org/), which combines the powerful functionality of Selenium with the headless nature of PhantomJS.
@@ -24,7 +24,7 @@ However, StudyBug V2 books studyrooms much differently. Here's how it works:
   
 Depending on the machine running StudyBug, performance is largely bounded by CPU power. This is because the <code>multiprocessing</code> module distributes workload across each core.
 
-Installing:
+Installing
 ========
 
 First clone the GitHub repository and <code>cd</code> into the root directory, <code>StudyBug</code>.
@@ -132,7 +132,7 @@ StudyBug V2 makes extensive use of logging, making it now easier to track any bu
 		2015-01-08 22:22:14 [ MainThread ] [ INFO ] :  successfully sent mail
 		2015-01-08 22:22:14 [ MainThread ] [ INFO ] : --------------------
 
-This is a block taken when all the rooms were booked between the designated times. 
+This is a block taken when StudyBug actively sought out 2 available time slots and automatically booked them. As you can see, the logging is very verbose, but this is to give us developers clarity when identifying and tracking bugs.  
 
 These logs are stored in the <code>log/logs</code> directory, under the alias <code>studybug.log</code>.
 
