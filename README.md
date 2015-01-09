@@ -1,16 +1,16 @@
 ![StudyBug](http://i1158.photobucket.com/albums/p618/g12mcgov/Untitleddrawing-1.png)
 ========
 
-An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the [Z. Smith Reynold's Library](https://zsr.wfu.edu/) at Wake Forest University, Winston-Salem, NC. This project was built as an academic resource and in no way designed to be malicious. 
+An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the [Z. Smith Reynold's Library](http://zsr.wfu.edu/studyrooms/) at Wake Forest University, Winston-Salem, NC. This project was built as an academic resource and in no way designed to be malicious. 
 
-Architecture
+Overview
 ========
 
 StudyBug makes use of the [PhantomJS](http://phantomjs.org/) web stack. PhantomJS can now be piggybacked off of [Selenium](http://www.seleniumhq.org/), which combines the powerful functionality of Selenium with the headless nature of PhantomJS.
 
 One the of the inherit problems with StudyBug V1 was that it was slow because it booked 2-hour blocks one at a time, refreshing the web-driver each time so as to make sure it wasn't booking a room that had been reserved in the time it took to execute the script. As a result, we saw sub-optimal performance, often resulting in random time blocks not being booked.
 
-However, StudyBug V2 books studyrooms much differently. Here's how it works:
+However, StudyBug V2 books studyrooms much differently. It's a classic "divide-and-conquer" algorithm. Here's how it works:
 
   * 1) Scrapes ZSR website for HTML
   * 2) Parses HTML, finding open rooms
@@ -24,7 +24,7 @@ However, StudyBug V2 books studyrooms much differently. Here's how it works:
   
 Depending on the machine running StudyBug, performance is largely bounded by CPU power. This is because the <code>multiprocessing</code> module distributes workload across each core.
 
-Installing:
+Installing
 ========
 
 First clone the GitHub repository and <code>cd</code> into the root directory, <code>StudyBug</code>.
@@ -131,7 +131,7 @@ StudyBug V2 makes extensive use of logging, making it now easier to track any bu
 		2015-01-08 22:22:14 [ MainThread ] [ INFO ] :  successfully sent mail
 		2015-01-08 22:22:14 [ MainThread ] [ INFO ] : --------------------
 
-This is a block taken when all the rooms were booked between the designated times. 
+This is a block taken when StudyBug actively sought out 2 available time slots and automatically booked them. As you can see, the logging is very verbose, but this is to give us developers clarity when identifying and tracking bugs.  
 
 These logs are stored in the <code>log/logs</code> directory, under the alias <code>studybug.log</code>.
 
