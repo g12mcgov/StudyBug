@@ -374,7 +374,7 @@ def confirm(url, room, rows):
 	
 		#confirmationlist = [reservation for reservation in soup.find(id=room).select('dd') if "current" in reservation.text]
 
-		for reservation in soup.find(id=str(room['room'])).select('dd'):
+		for reservation in soup.find(id=room).select('dd'):
 			class_name = ' '.join(reservation.get('class'))
 			# Checks to see if WE in fact reserved that room
 			if "current_user_reservations" in class_name:
