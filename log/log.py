@@ -18,8 +18,8 @@ import logging
 def configLogger(name):
 	## Make it so that all methods can reach it
 	logger = logging.getLogger(name)
-	handler = logging.FileHandler('log/logs/studybug.log')
-	#handler = logging.StreamHandler()
+	#handler = logging.FileHandler('log/logs/studybug.log')
+	handler = logging.StreamHandler()
 	
 	formatter = logging.Formatter(
 		'%(asctime)s [ %(threadName)s ] [ %(levelname)s ] : %(message)s',
