@@ -1,0 +1,45 @@
+2015-01-08 22:21:30 [ MainThread ] [ INFO ] : -------- NEW LOG BLOCK ---------------
+2015-01-08 22:21:30 [ MainThread ] [ INFO ] :  beginning StudyBug at 2015-01-08 22:21:30.858987
+2015-01-08 22:21:30 [ MainThread ] [ INFO ] :  requesting http://zsr.wfu.edu/studyrooms/2015/01/12
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  total available time slots: 2
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  total users: 4
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  creating thread pool... 
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  kleitc13 - booking rooms
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  mcgoga12 - booking rooms
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  diazja13 - booking rooms
+2015-01-08 22:21:32 [ MainThread ] [ INFO ] :  keanns13 - booking rooms
+2015-01-08 22:21:36 [ MainThread ] [ INFO ] :  mcgoga12 - clicking on individual rooms...
+2015-01-08 22:21:36 [ MainThread ] [ INFO ] :  mcgoga12 - clicking on //*[@id='room-225']/dd[18]
+2015-01-08 22:21:36 [ MainThread ] [ INFO ] :  mcgoga12 - successfully clicked on all rooms
+2015-01-08 22:21:36 [ MainThread ] [ INFO ] :  mcgoga12 - clicking on save for user
+2015-01-08 22:21:37 [ MainThread ] [ INFO ] :  diazja13 - clicking on individual rooms...
+2015-01-08 22:21:37 [ MainThread ] [ INFO ] :  diazja13 - clicking on //*[@id='room-225']/dd[24]
+2015-01-08 22:21:37 [ MainThread ] [ INFO ] :  diazja13 - successfully clicked on all rooms
+2015-01-08 22:21:37 [ MainThread ] [ INFO ] :  diazja13 - clicking on save for user
+2015-01-08 22:21:38 [ MainThread ] [ INFO ] :  mcgoga12 - filling in username 
+2015-01-08 22:21:38 [ MainThread ] [ INFO ] :  mcgoga12 - filling in password 
+2015-01-08 22:21:38 [ MainThread ] [ INFO ] :  mcgoga12 - clicking on submit 
+2015-01-08 22:21:41 [ MainThread ] [ INFO ] :  diazja13 - filling in username 
+2015-01-08 22:21:41 [ MainThread ] [ INFO ] :  diazja13 - filling in password 
+2015-01-08 22:21:41 [ MainThread ] [ INFO ] :  diazja13 - clicking on submit 
+2015-01-08 22:21:41 [ MainThread ] [ INFO ] :  Executed in 0:00:11.029330 seconds
+2015-01-08 22:21:41 [ MainThread ] [ INFO ] :  confirming...
+2015-01-08 22:21:45 [ MainThread ] [ INFO ] :  checking user mcgoga12...
+2015-01-08 22:21:47 [ MainThread ] [ INFO ] :  mcgoga12 booked Reserved: Room 225 3:00 PM  
+2015-01-08 22:21:47 [ MainThread ] [ INFO ] :  mcgoga12 booked Reserved: Room 225 3:30 PM  
+2015-01-08 22:21:47 [ MainThread ] [ INFO ] :  mcgoga12 booked Reserved: Room 225 4:00 PM  
+2015-01-08 22:21:47 [ MainThread ] [ INFO ] :  mcgoga12 booked Reserved: Room 225 5:00 PM  
+2015-01-08 22:21:51 [ MainThread ] [ INFO ] :  checking user kleitc13...
+2015-01-08 22:21:55 [ MainThread ] [ INFO ] :  kleitc13 booked Reserved: Room 225 5:30 PM  
+2015-01-08 22:21:55 [ MainThread ] [ INFO ] :  kleitc13 booked Reserved: Room 225 6:00 PM  
+2015-01-08 22:21:55 [ MainThread ] [ INFO ] :  kleitc13 booked Reserved: Room 225 6:30 PM  
+2015-01-08 22:21:55 [ MainThread ] [ INFO ] :  kleitc13 booked Reserved: Room 225 7:00 PM  
+2015-01-08 22:22:02 [ MainThread ] [ INFO ] :  checking user diazja13...
+2015-01-08 22:22:04 [ MainThread ] [ INFO ] :  diazja13 booked Reserved: Room 225 8:00 PM  
+2015-01-08 22:22:04 [ MainThread ] [ INFO ] :  diazja13 booked Reserved: Room 225 8:30 PM  
+2015-01-08 22:22:04 [ MainThread ] [ INFO ] :  diazja13 booked Reserved: Room 225 9:00 PM  
+2015-01-08 22:22:04 [ MainThread ] [ INFO ] :  diazja13 booked Reserved: Room 225 9:30 PM  
+2015-01-08 22:22:08 [ MainThread ] [ INFO ] :  checking user keanns13...
+2015-01-08 22:22:13 [ MainThread ] [ INFO ] :  sending email...
+2015-01-08 22:22:14 [ MainThread ] [ INFO ] :  successfully sent mail
+2015-01-08 22:22:14 [ MainThread ] [ INFO ] : --------------------

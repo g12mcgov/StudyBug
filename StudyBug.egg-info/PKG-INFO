@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: StudyBug
+Version: 0.1a
+Summary: An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the Z. Smith Reynolds Library at Wake Forest University, Winston-Salem, NC.
+Home-page: UNKNOWN
+Author: Grant McGovern, Gaurav Sheni, & Nate Dehorn
+Author-email: mcgoga12@wfu.edu
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
