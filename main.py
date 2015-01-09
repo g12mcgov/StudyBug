@@ -95,6 +95,7 @@ def main():
 	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
 
 	# Lastly, confirm our reservations
+	print room
 	confirmed_times = confirm(url, room, rows)
 	# Send email with our reserved rooms
 	sendEmail(confirmed_times, room, email, password)
@@ -203,7 +204,7 @@ def availability(room, soup, startTime, endTime):
  	#	<input id="srr-1-1420839000" name="srr-1-1420839000" type="checkbox" value="Y"/>
  	#	<label for="srr-1-1420839000">
   	#		<span class="room-name">
-    #			Room 225
+    	#			Room 225
   	#		</span>
   	#		<span class="time-slot">
    	#			4:30 PM
