@@ -11,25 +11,18 @@
 # ~ Setups a logging class to wrap python's built-in logger ~
 #
 #
-
+import sys
 import logging
 
 ## Setsup a logger for the entire application to use
 def configLogger(name):
-	## Make it so that all methods can reach it
-	logger = logging.getLogger(name)
-	#handler = logging.FileHandler('log/logs/studybug.log')
-	handler = logging.StreamHandler()
-	
-	formatter = logging.Formatter(
-		'%(asctime)s [ %(threadName)s ] [ %(levelname)s ] : %(message)s',
-		'%Y-%m-%d %H:%M:%S'
-		)
-	
-	handler.setFormatter(formatter)
-	
-	logger.addHandler(handler) 
-	logger.setLevel(logging.DEBUG) 
+	logger = logging.basicConfig( 
+    stream=sys.stdout, 
+    level=logging.INFO, 
+    format="%(asctime)s [ %(threadName)s ] [ %(levelname)s ] : %(message)s'", 
+    datefmt='%Y-%m-%d %H:%M:%S' 
+	) 
 
-	# sendToLoggly()
+	logger = logging.getLogger(name)
+
 	return logger
