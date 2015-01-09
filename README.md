@@ -10,7 +10,7 @@ StudyBug makes use of the [PhantomJS](http://phantomjs.org/) web stack. PhantomJ
 
 One the of the inherit problems with StudyBug V1 was that it was slow because it booked 2-hour blocks one at a time, refreshing the web-driver each time so as to make sure it wasn't booking a room that had been reserved in the time it took to execute the script. As a result, we saw sub-optimal performance, often resulting in random time blocks not being booked.
 
-However, StudyBug V2 books studyrooms much differently. Here's how it works:
+However, StudyBug V2 books studyrooms much differently. It's a classic "divide-and-conquer" algorithm. Here's how it works:
 
   * 1) Scrapes ZSR website for HTML
   * 2) Parses HTML, finding open rooms
