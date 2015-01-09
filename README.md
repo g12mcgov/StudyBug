@@ -1,7 +1,7 @@
 ![StudyBug](http://i1158.photobucket.com/albums/p618/g12mcgov/Untitleddrawing-1.png)
 ========
 
-An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the [Z. Smith Reynold's Library](https://zsr.wfu.edu/) at Wake Forest University, Winston-Salem, NC. This project was built as an academic resource and in no way designed to be malicious. 
+An automated web-crawler hosted through Heroku whose purpose is to book study rooms each night at midnight in the [Z. Smith Reynold's Library](http://zsr.wfu.edu/studyrooms/) at Wake Forest University, Winston-Salem, NC. This project was built as an academic resource and in no way designed to be malicious. 
 
 Overview
 ========
