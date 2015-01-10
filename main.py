@@ -265,7 +265,8 @@ def matchUsers(rows, rooms):
 	
 	userdicts = []
 
-	for row, room in map(None, rows, rooms):
+	#for row, room in map(None, rows, rooms):
+	for row, room in zip(rows, rooms):
 		userdicts.append({
 				"username": row[0], 
 				"password": row[1], 
