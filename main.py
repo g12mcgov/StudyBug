@@ -235,7 +235,7 @@ def availability(room, soup, startTime, endTime):
 					"room": room,
 					"status": status,
 					"time": time,
-					"xpath": "//*[@id='%s']/dd[%i]" % (room, schema.getXpath(time))
+					"xpath": "//*[@id='%s']/dd[%i]" % (room, i) # schema.getXpath(time)
 					})
 		i += 1
 
