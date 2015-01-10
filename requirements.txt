@@ -1,0 +1,6 @@
+EasyProcess==0.1.6
+PyVirtualDisplay==0.1.5
+beautifulsoup4==4.3.2
+selenium==2.44.0
+splinter==0.7.0
+wsgiref==0.1.2
