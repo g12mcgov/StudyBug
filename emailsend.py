@@ -22,7 +22,7 @@ from smtplib import SMTPException
 sys.path.append('log')
 
 ## Local Includes ## 
-from log.log import configLogger
+from log.loger import configLogger
 
 logger = logging.getLogger('root')
 

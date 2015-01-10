@@ -37,7 +37,7 @@ sys.path.append('log')
 from user import User
 from schema import XPathSchema
 from emailsend import sendEmail
-from log.log import configLogger
+from log.loger import configLogger
 from helpers.helper import chunk, parseTime
 
 def main():
@@ -194,7 +194,7 @@ def htmlFetch(url):
 
 # Determines what rooms are available
 def availability(room, soup, startTime, endTime):
-	schema = XPathSchema()
+	# schema = XPathSchema()
 	rooms = []
 
 	# Returns a HTML code block as such:
