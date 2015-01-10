@@ -31,13 +31,13 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 
 sys.path.append('helpers')
-sys.path.append('log')
+sys.path.append('loggings')
 
 ## Local Includes ##
 from user import User
 from schema import XPathSchema
 from emailsend import sendEmail
-from log.loger import configLogger
+from loggings.loger import configLogger
 from helpers.helper import chunk, parseTime
 
 def main():
