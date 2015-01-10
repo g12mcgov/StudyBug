@@ -17,7 +17,6 @@ import urllib2
 import logging
 import operator
 import datetime
-import simplejson
 import ConfigParser
 from timeit import Timer 
 from bs4 import BeautifulSoup
