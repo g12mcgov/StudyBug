@@ -17,6 +17,10 @@ import time
 import logging
 import datetime
 from smtplib import SMTPException
+
+sys.path.append('log')
+
+## Local Includes ## 
 from log.log import configLogger
 
 logger = logging.getLogger('root')
