@@ -51,6 +51,7 @@ def main():
 
 	# Get date 5 days ahead
 	date = getDate()
+	#date = '01/14/2015'
 
 	# Setup our configuration parameters 
 	configs = getConfig()
@@ -96,7 +97,7 @@ def main():
 	# Lastly, confirm our reservations
 	confirmed_times = confirm(url, room, rows)
 	# Send email with our reserved rooms
-	sendEmail(confirmed_times, room, email, password)
+	sendEmail(confirmed_times, room, email, password, startTime, endTime)
 
 	logger.info("--------------------")
 
@@ -260,7 +261,7 @@ def matchUsers(rows, rooms):
 	rooms = chunk(rooms, 4)
 
 	for room in rooms:
-		print room
+		logger.info(room)
 	
 	userdicts = []
 
