@@ -11,13 +11,13 @@
 import os
 import csv
 import sys
-import time 
 import socket
 import urllib2
 import logging
 import operator
 import datetime
 import ConfigParser
+from time import time
 from timeit import Timer 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -213,31 +213,67 @@ def availability(room, soup, startTime, endTime):
  	#	</i>
 	# </dd>
 
-	# Find all rooms on the grid which are open
-	blocks = [block for block in soup.find(id=room).select('dd') if "unavailable" not in block.text]
+	# Sometimes BeautifulSoup attempts to find the elements before the page 
+	# has completely loaded. This is a hacky way of ensuring the page has been
+	# loaded by recursively attempting to accessing content for 1 minute before
+	# timing out.
+	for attempt in range(60):
+		try:
+			# Find all rooms on the grid which are open
+			blocks = [block for block in soup.find(id=room).select('dd') if "unavailable" not in block.text]
 
+			if blocks:
+				break
+			else:
+				pass
+
+		except AttributeError as err:
+			logger.error("Could not click on element")
+			logger.error(err)
+
+		time.time().sleep(1)
+
+
+	# Extract our times from the config file
 	start = parseTime(startTime)
 	end = parseTime(endTime)
 
+	# Get the first element on the grid
+	starting_time = parseTime(blocks[0].find('span', {'class': 'time-slot'}).get_text())
+	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
+
+	# If we configured a time later than the last possible one, limit it
+	if ending_time < end:
+		end = ending_time
+	
+	# Calculate our starting time point by finding the distance between the two times.
+	difference = start - starting_time
+
+	# Breaks up the difference into half-hour blocks
+	halfHours = (difference.seconds / 60 / 60)*2
+
+	## Increment i (our XPath index until we hit the startime time)
 	i = 1
+	while (i != halfHours): i += 1 	
 	
 	for block in blocks:
 		status = ' '.join(block.get('class'))
 		time = block.find('span', {'class': 'time-slot'}).get_text()
 
-		## Check to make sure room is open 
-		if "open" in status:
-			## Only assign rooms between the above hours
-			if end < parseTime(time) < start:
-				pass
-			else:
+		# Only assign rooms between the above hours
+		if start <= parseTime(time) <= end:
+			# Pre-increment by 1, no idea why, but I should find out
+			i += 1
+			## Check to make sure room is open 
+			if "open" in status:
 				rooms.append({
 					"room": room,
 					"status": status,
 					"time": time,
 					"xpath": "//*[@id='%s']/dd[%i]" % (room, i) # schema.getXpath(time)
 					})
-		i += 1
+			else:
+				pass
 
 	# Just to see how many rooms were available
 	if len(rooms) < 1:
@@ -261,6 +297,7 @@ def matchUsers(rows, rooms):
 	rooms = chunk(rooms, 4)
 
 	for room in rooms:
+		logger.info('\n')
 		logger.info(room)
 	
 	userdicts = []
