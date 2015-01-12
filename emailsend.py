@@ -12,16 +12,23 @@
 #
 #
 
+import sys
 import smtplib
 import time
 import logging
 import datetime
 from smtplib import SMTPException
-from log.log import configLogger
+
+sys.path.append('loggings')
+
+## Local Includes ## 
+from loggings.loger import configLogger
 
 logger = logging.getLogger('root')
 
-def sendEmail(confirmationList, room, email, password):
+def sendEmail(confirmationList, room, email, password, startTime, endTime):
+	print startTime, endTime
+
 	logger.info(" sending email...")
 	now = datetime.datetime.now()
 	
@@ -30,6 +37,8 @@ def sendEmail(confirmationList, room, email, password):
 	
 	endate = date + datetime.timedelta(days=4)
 	newdate = endate.strftime("%m/%d/%Y")
+
+	day_name = endate.strftime("%A")
 
 	length = len(confirmationList)
 
@@ -42,28 +51,29 @@ def sendEmail(confirmationList, room, email, password):
 		confirmed_rooms = ""
 
 	FROM = gmail_user
-	TO = ['mcgoga12@wfu.edu']
-	SUBJECT = "StudyBug - Study Rooms for %s" % newdate
+	TO = ['slagswfu@googlegroups.com', 'mcgoga12@wfu.edu']
+	SUBJECT = "PIKE Study Rooms for %s, %s" % (day_name, newdate)
 	TEXT = """
 This is an automated email from StudyBug.
 
-We wanted to let you know that the following studyroom times were booked for %s:
+The following studyroom times were booked for %s:
+
+(%s time slots total)
 
 %s
 
-Thank You, 
+Thanks, 
 
 StudyBug 
 
 -----------------------------------------------------------------------------------------------
-Developed by Grant McGovern & Gaurav Sheni
+~ a grantmcgovern build ~	
 -----------------------------------------------------------------------------------------------
 
-Check out the project page!: https://github.com/g12mcgov/StudyBug
+Check out the project page at: https://github.com/g12mcgov/StudyBug
 
-~ a grantmcgovern build ~	
 
-""" % (newdate, '\n'.join(confirmed_rooms).replace('Reserved: ', '').encode('utf-8')) 
+""" % (newdate, length,'\n'.join(confirmed_rooms).replace('Reserved: ', '').encode('utf-8')) 
 
 	message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
 	""" %(FROM, ",".join(TO), SUBJECT, TEXT)
