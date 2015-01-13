@@ -215,9 +215,9 @@ def availability(room, soup, startTime, endTime):
 
 	# Sometimes BeautifulSoup attempts to find the elements before the page 
 	# has completely loaded. This is a hacky way of ensuring the page has been
-	# loaded by recursively attempting to accessing content for 1 minute before
+	# loaded by recursively attempting to accessing content for 2 minutes before
 	# timing out.
-	for attempt in range(60):
+	for attempt in range(120):
 		try:
 			# Find all rooms on the grid which are open
 			blocks = [block for block in soup.find(id=room).select('dd') if "unavailable" not in block.text]
