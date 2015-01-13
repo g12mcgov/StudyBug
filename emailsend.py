@@ -51,7 +51,7 @@ def sendEmail(confirmationList, room, email, password, startTime, endTime):
 		confirmed_rooms = ""
 
 	FROM = gmail_user
-	TO = ['slagswfu@googlegroups.com', 'mcgoga12@wfu.edu']
+	TO = ['mcgoga12@wfu.edu']
 	SUBJECT = "PIKE Study Rooms for %s, %s" % (day_name, newdate)
 	TEXT = """
 This is an automated email from StudyBug.
