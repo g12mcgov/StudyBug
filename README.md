@@ -63,7 +63,7 @@ If all checked out, see below for documentation on how to run it.
 Running
 =========
 
-In the <config> directory, open up the <code>studybug.cfg</code> file. It will look like this:
+In the <code>config</code> directory, open up the <code>studybug.cfg</code> file. It will look like this:
 
     # Set up basic config for StudyBug
     [studybug]
