@@ -11,13 +11,13 @@
 import os
 import csv
 import sys
+import time
 import socket
 import urllib2
 import logging
 import operator
 import datetime
 import ConfigParser
-from time import time
 from timeit import Timer 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -51,7 +51,6 @@ def main():
 
 	# Get date 5 days ahead
 	date = getDate()
-	#date = '01/14/2015'
 
 	# Setup our configuration parameters 
 	configs = getConfig()
@@ -203,7 +202,7 @@ def availability(room, soup, startTime, endTime):
  	#	<input id="srr-1-1420839000" name="srr-1-1420839000" type="checkbox" value="Y"/>
  	#	<label for="srr-1-1420839000">
   	#		<span class="room-name">
-    	#			Room 225
+    #			Room 225
   	#		</span>
   	#		<span class="time-slot">
    	#			4:30 PM
@@ -215,9 +214,9 @@ def availability(room, soup, startTime, endTime):
 
 	# Sometimes BeautifulSoup attempts to find the elements before the page 
 	# has completely loaded. This is a hacky way of ensuring the page has been
-	# loaded by recursively attempting to accessing content for 1 minute before
+	# loaded by recursively attempting to accessing content for 2 minutes before
 	# timing out.
-	for attempt in range(60):
+	for attempt in range(120):
 		try:
 			# Find all rooms on the grid which are open
 			blocks = [block for block in soup.find(id=room).select('dd') if "unavailable" not in block.text]
@@ -231,7 +230,7 @@ def availability(room, soup, startTime, endTime):
 			logger.error("Could not click on element")
 			logger.error(err)
 
-		time.time().sleep(1)
+		time.sleep(1)
 
 
 	# Extract our times from the config file
@@ -258,10 +257,10 @@ def availability(room, soup, startTime, endTime):
 	
 	for block in blocks:
 		status = ' '.join(block.get('class'))
-		time = block.find('span', {'class': 'time-slot'}).get_text()
+		time_ = block.find('span', {'class': 'time-slot'}).get_text()
 
 		# Only assign rooms between the above hours
-		if start <= parseTime(time) <= end:
+		if start <= parseTime(time_) <= end:
 			# Pre-increment by 1, no idea why, but I should find out
 			i += 1
 			## Check to make sure room is open 
@@ -269,7 +268,7 @@ def availability(room, soup, startTime, endTime):
 				rooms.append({
 					"room": room,
 					"status": status,
-					"time": time,
+					"time": time_,
 					"xpath": "//*[@id='%s']/dd[%i]" % (room, i) # schema.getXpath(time)
 					})
 			else:
