@@ -109,7 +109,7 @@ def bookRooms(user):
 		driver = webdriver.PhantomJS()
 		driver.get(url)
 
-		# This is a PhantomJS but remedied by the following method call... should 
+		# This is a PhantomJS bug remedied by the following method call... should 
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 
@@ -398,7 +398,7 @@ def confirm(url, room, rows):
 
 		driver = webdriver.PhantomJS()
 
-		# This is a PhantomJS but remedied by the following method call... should 
+		# This is a PhantomJS bug remedied by the following method call... should 
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 

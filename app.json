@@ -1,0 +1,7 @@
+{
+  "name": "StudyBug",
+  "description": "A web crawler that books study rooms in the ZSR library at WFU",
+  "repository": "https://github.com/g12mcgov/StudyBug",
+  "logo": "https://node-js-sample.herokuapp.com/node.svg",
+  "keywords": ["python", "express", "static"]
+}
