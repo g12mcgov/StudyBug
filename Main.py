@@ -71,11 +71,12 @@ def main():
 	# Discovers available rooms
 	rooms = availability(room, HTML, startTime, endTime)
 
-	# Create a threading pool
+
 	if not rooms:
 		logger.warning(" no available rooms at all")
 		return
 
+	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
 	for user in users:
@@ -84,10 +85,10 @@ def main():
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
 	 	return
-	 	
 	else:
 		logger.info(" total users: " + str(len(users)))
-		logger.info(" creating thread pool... ")	
+		logger.info(" creating thread pool... ")
+		# Create a threading pool	
 	 	pool = Pool(processes=4)
 	 	pool.map(bookRooms, users)
 
@@ -98,7 +99,7 @@ def main():
 	# Send email with our reserved rooms
 	sendEmail(confirmed_times, room, email, password, startTime, endTime)
 
-	logger.info("--------------------")
+	logger.info("------------------------")
 
 def bookRooms(user):
 	logger.info(" " + user.username + " - booking rooms")
@@ -246,8 +247,6 @@ def availability(room, soup, startTime, endTime):
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
 
-	print ending_time
-
 	# If we configured a time later than the last possible one, limit it
 	if ending_time < end:
 		end = ending_time
@@ -313,7 +312,6 @@ def matchUsers(rows, rooms):
 	
 	userdicts = []
 
-	#for row, room in map(None, rows, rooms):
 	for row, room in zip(rows, rooms):
 		userdicts.append({
 				"username": row[0], 

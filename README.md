@@ -63,7 +63,7 @@ If all checked out, see below for documentation on how to run it.
 Running
 =========
 
-In the <code>config</code> directory, open up the <code>studybug.cfg</code> file. It will look like this:
+In the <config> directory, open up the <code>studybug.cfg</code> file. It will look like this:
 
     # Set up basic config for StudyBug
     [studybug]
@@ -78,10 +78,6 @@ Lastly, the URL base is defined which should remained <b>unchanged</b>.
 
 To run, simply open up a Terminal and execute:
   * <code>python main.py</code>
-
-Currently, StudyBug is being run as a nightly job via [Heroku](http://www.heroku.com). Heroku is pretty easy to setup and has the advantage that uses <code>git</code> to commit code. Heroku also has a nice Scheduler add-on and awesome logging configurations, making it the best possible choice. 
-
-However, you can use really whatever you like. You could schedule StudyBug via Cron, or even host it on a cloud-service such as Amazon EC2, etc...
 
 
 Logging
