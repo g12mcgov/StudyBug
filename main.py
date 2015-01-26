@@ -40,6 +40,10 @@ from loggings.loger import configLogger
 from helpers.helper import chunk, parseTime
 
 def main():
+	global logger
+	# Declare our root logger
+	logger = configLogger("root")
+	
 	# To indicate a new log-block
 	logger.info("-------- NEW LOG BLOCK ---------------")
 	
@@ -71,11 +75,12 @@ def main():
 	# Discovers available rooms
 	rooms = availability(room, HTML, startTime, endTime)
 
-	# Create a threading pool
+
 	if not rooms:
 		logger.warning(" no available rooms at all")
 		return
 
+	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
 	for user in users:
@@ -84,10 +89,10 @@ def main():
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
 	 	return
-	 	
 	else:
 		logger.info(" total users: " + str(len(users)))
-		logger.info(" creating thread pool... ")	
+		logger.info(" creating thread pool... ")
+		# Create a threading pool	
 	 	pool = Pool(processes=4)
 	 	pool.map(bookRooms, users)
 
@@ -98,7 +103,7 @@ def main():
 	# Send email with our reserved rooms
 	sendEmail(confirmed_times, room, email, password, startTime, endTime)
 
-	logger.info("--------------------")
+	logger.info("------------------------")
 
 def bookRooms(user):
 	logger.info(" " + user.username + " - booking rooms")
@@ -108,7 +113,7 @@ def bookRooms(user):
 		driver = webdriver.PhantomJS()
 		driver.get(url)
 
-		# This is a PhantomJS but remedied by the following method call... should 
+		# This is a PhantomJS bug remedied by the following method call... should 
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 
@@ -246,8 +251,6 @@ def availability(room, soup, startTime, endTime):
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
 
-	print ending_time
-
 	# If we configured a time later than the last possible one, limit it
 	if ending_time < end:
 		end = ending_time
@@ -313,7 +316,6 @@ def matchUsers(rows, rooms):
 	
 	userdicts = []
 
-	#for row, room in map(None, rows, rooms):
 	for row, room in zip(rows, rooms):
 		userdicts.append({
 				"username": row[0], 
@@ -400,7 +402,7 @@ def confirm(url, room, rows):
 
 		driver = webdriver.PhantomJS()
 
-		# This is a PhantomJS but remedied by the following method call... should 
+		# This is a PhantomJS bug remedied by the following method call... should 
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 
@@ -439,6 +441,4 @@ def confirm(url, room, rows):
 	return confirmationlist
 
 if __name__ == "__main__":
-	# Declare our root logger
-	logger = configLogger("root")
 	main()
