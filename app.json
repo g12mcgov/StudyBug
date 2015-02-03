@@ -2,6 +2,6 @@
   "name": "StudyBug",
   "description": "A web crawler that books study rooms in the ZSR library at WFU",
   "repository": "https://github.com/g12mcgov/StudyBug",
-  "logo": "https://node-js-sample.herokuapp.com/node.svg",
+  "logo": "http://i1158.photobucket.com/albums/p618/g12mcgov/687474703a2f2f69313135382e70686f746f6275636b65742e636f6d2f616c62756d732f703631382f6731326d63676f762f556e7469746c656464726177696e672d312e.png",
   "keywords": ["python", "express", "static"]
 }
