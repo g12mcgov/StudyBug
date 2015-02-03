@@ -34,7 +34,8 @@ To install StudyBug you <b>must</b> have <code>Python 2.7</code> installed.
 You also need to install Node.js. 
 
 <b>Mac OS X</b>:
-	<code>brew install node</code>
+	
+	brew install node
 
 <b>Linux</b>:
 	
@@ -42,6 +43,7 @@ You also need to install Node.js.
 	sudo ln -s /usr/bin/nodejs /usr/bin/node
 
 <b>Windows</b>:
+	
 	[See here.](http://blueashes.com/2011/web-development/install-nodejs-on-windows/)
 
 Now, using Node's package manager, <code>npm</code> run:
