@@ -44,7 +44,7 @@ You also need to install Node.js.
 
 <b>Windows</b>:
 	
-	[See here.](http://blueashes.com/2011/web-development/install-nodejs-on-windows/)
+[See here.](http://blueashes.com/2011/web-development/install-nodejs-on-windows/)
 
 Now, using Node's package manager, <code>npm</code> run:
 
