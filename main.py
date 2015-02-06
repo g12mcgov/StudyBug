@@ -83,8 +83,8 @@ def main():
 	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
-	for user in users:
-		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
+	# for user in users:
+	#	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
 	if not users:
 	 	logger.warning(" no rooms for time constraint")

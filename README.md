@@ -31,9 +31,18 @@ First clone the GitHub repository and <code>cd</code> into the root directory, <
 
 To install StudyBug you <b>must</b> have <code>Python 2.7</code> installed.
 
-You also need to install Node.js. If you're on a mac simply type the following:
+You also need to install Node.js. 
 
-<code>brew install node</code>
+<b>Mac OS X</b>:
+	<code>brew install node</code>
+
+<b>Linux</b>:
+	
+	sudo apt-get install npm
+	sudo ln -s /usr/bin/nodejs /usr/bin/node
+
+<b>Windows</b>:
+	[See here.](http://blueashes.com/2011/web-development/install-nodejs-on-windows/)
 
 Now, using Node's package manager, <code>npm</code> run:
 
@@ -63,7 +72,7 @@ If all checked out, see below for documentation on how to run it.
 Running
 =========
 
-In the <config> directory, open up the <code>studybug.cfg</code> file. It will look like this:
+In the <code>config</code> directory, open up the <code>studybug.cfg</code> file. It will look like this:
 
     # Set up basic config for StudyBug
     [studybug]
