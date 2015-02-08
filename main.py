@@ -90,7 +90,7 @@ def main():
 
 	# for user in users:
 	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
-	
+		
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
 	 	return
