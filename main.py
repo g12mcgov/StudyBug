@@ -12,22 +12,17 @@
 #
 #
 
-import os
 import csv
 import sys
 import time
 import socket
 import urllib2
 import logging
-import operator
 import datetime
 import ConfigParser
-from timeit import Timer 
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from multiprocessing import Pool 
-from collections import OrderedDict
-from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
@@ -99,7 +94,7 @@ def main():
 		logger.info(" creating thread pool... ")
 		# Create a threading pool	
 	 	pool = Pool(processes=4)
-	 	pool.map(bookRooms, users, selenium_timeout)
+	 	pool.map(bookRooms, users)
 
 	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
 
@@ -111,7 +106,8 @@ def main():
 
 	logger.info("------------------------")
 
-def bookRooms(user, selenium_timeout):
+def bookRooms(user):
+	selenium_timeout = 10
 	logger.info(" " + user.username + " - booking rooms")
 	if not user:
 		logger.error(" " + user.username + " - NO AVAILABLE TIMES")
@@ -316,9 +312,9 @@ def matchUsers(rows, rooms):
 	## Check for white space in csv file
 	rooms = chunk(rooms, 4)
 
-	for room in rooms:
-		logger.info('\n')
-		logger.info(room)
+	# for room in rooms:
+	# 	logger.info('\n')
+	# 	logger.info(room)
 	
 	userdicts = []
 

@@ -1,7 +1,15 @@
+APScheduler==3.0.1
 EasyProcess==0.1.6
 PyVirtualDisplay==0.1.5
+StudyBug==0.1a
 beautifulsoup4==4.3.2
+futures==2.2.0
+pyflakes==0.8.1
+pymongo==2.8
+pytz==2014.10
 selenium==2.44.0
+simplejson==3.6.5
+six==1.9.0
 splinter==0.7.0
+tzlocal==1.1.2
 wsgiref==0.1.2
-apscheduler==3.0.1

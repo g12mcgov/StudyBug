@@ -139,7 +139,7 @@ def constructEmailBody(gmail_user, day_name, newdate, length, rooms):
 		body = '\n'.join(rooms)
 
 	FROM = gmail_user
-	TO = ['mcgoga12@wfu.edu']
+	TO = ['slagswfu@googlegroups.com', 'mcgoga12@wfu.edu']
 	SUBJECT = "PIKE Study Rooms for %s, %s" % (day_name, newdate)
 	TEXT = """
 This is an automated email from StudyBug.
