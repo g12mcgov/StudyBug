@@ -28,7 +28,7 @@ class MongoDriver:
 	# Add an entry to Mongo 
 	def addEntry(self, rooms, expected, timeRange, room, todayDate, endDate):
 		# First remove last entry in Mongo 
-		self.cleanDB()
+		# self.cleanDB()
 
 		try:
 			self.db.studybug.save({
