@@ -14,6 +14,7 @@
 
 import pymongo 
 import logging
+import datetime
 
 ## Local Includes ##
 from loggings.loger import configLogger
@@ -27,10 +28,13 @@ class MongoDriver:
 
 	# Add an entry to Mongo 
 	def addEntry(self, rooms, expected, timeRange, room, todayDate, endDate):
-		# First remove last entry in Mongo 
-		# self.cleanDB()
+		# Get today's date
+		today = datetime.datetime.now().strftime("%m/%d/%Y")
+		# Remove the corresponding entry on today's date
+		self.cleanDB({"todayDate": today})
 
 		try:
+			# Insert our BSON block into Mongo
 			self.db.studybug.save({
 				"bookings": rooms,
 				"expected": expected,
@@ -45,9 +49,9 @@ class MongoDriver:
 			logger.error(" ERR: Failed to insert into Mongo: " + str(err))
 
 	# Remove our most recent entry to insert the new one 
-	def cleanDB(self):
+	def cleanDB(self, query):
 		try:
-			self.db.studybug.remove({})
+			self.db.studybug.remove(query)
 			logger.info(" successfully removed (1) row from Mongo")
 
 		except pymongo.errors.OperationFailure as err:
@@ -64,6 +68,7 @@ class MongoDriver:
 		except: 
 			logger.error(" ERR: MongoDB connection unresolved ")
 		
-## Debug 
+# Debug 
 # if __name__ == "__main__":
-# 	mongo = MongoDriver()
+# 	host = "mongodb://admin:nantucket@ds041581.mongolab.com:41581/heroku_app33177236"
+# 	mongo = MongoDriver(host)
