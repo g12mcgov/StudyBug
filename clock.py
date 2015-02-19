@@ -12,6 +12,7 @@
 #	leverage it against Heroku's "clock" type process. ~
 #
 import sys
+import logging
 
 sys.path.append('main')
 
@@ -23,6 +24,7 @@ sched = BlockingScheduler()
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
 @sched.scheduled_job('cron', hour=5)
 def scheduled_job():
+	logging.basicConfig()
 	main()
     
 sched.start()
