@@ -1,7 +1,6 @@
 APScheduler==3.0.1
 EasyProcess==0.1.6
 PyVirtualDisplay==0.1.5
-StudyBug==0.1a
 beautifulsoup4==4.3.2
 futures==2.2.0
 pyflakes==0.8.1
