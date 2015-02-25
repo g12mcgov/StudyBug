@@ -14,6 +14,8 @@
 import sys
 import logging
 
+logging.basicConfig()
+
 sys.path.append('main')
 
 from main import main
@@ -24,7 +26,6 @@ sched = BlockingScheduler()
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
 @sched.scheduled_job('cron', hour=5)
 def scheduled_job():
-	logging.basicConfig()
 	main()
     
 sched.start()
