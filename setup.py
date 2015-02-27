@@ -3,7 +3,7 @@
 ## 
 ## Created by: Grant McGovern 
 ## Date: 18 July 2014 
-## Purpose: Setup environment for GroupMeCli.
+## Purpose: Setup environment for StudyBug.
 ## 
 
 from setuptools import setup, find_packages
