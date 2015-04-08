@@ -18,8 +18,7 @@ logging.basicConfig()
 
 sys.path.append('main')
 
-#from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from main import main
 
 #sched = BlockingScheduler()
