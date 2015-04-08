@@ -1,4 +1,4 @@
-APScheduler==3.0.0
+APScheduler==2.0.3
 EasyProcess==0.1.6
 PyVirtualDisplay==0.1.5
 beautifulsoup4==4.3.2

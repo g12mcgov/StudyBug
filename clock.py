@@ -18,10 +18,12 @@ logging.basicConfig()
 
 sys.path.append('main')
 
-from apscheduler.schedulers.blocking import BlockingScheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.scheduler import Scheduler
 from main import main
 
-sched = BlockingScheduler()
+#sched = BlockingScheduler()
+sched = Scheduler()
 
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
 @sched.scheduled_job('cron', hour=9, minute=7, misfire_grace_time=20)
@@ -35,5 +37,7 @@ def job():
 sched.start()
 
 # DEBUG 
-if __name__ == '__main__':
-  pass 
+# if __name__ == '__main__':
+#   pass 
+while True:
+	pass
