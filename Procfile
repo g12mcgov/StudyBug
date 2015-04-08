@@ -1,2 +1,1 @@
-worker: python main.py --loglevel=ERROR
-clock: python clock.py --loglevel=DEBUG
+worker: python main.py
