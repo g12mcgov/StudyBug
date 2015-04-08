@@ -25,7 +25,7 @@ from main import main
 sched = BackgroundScheduler()
 
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
-@sched.scheduled_job('cron', hour=9, minute=20, misfire_grace_time=20)
+@sched.scheduled_job('cron', hour=9, minute=23, misfire_grace_time=20)
 def job():
 	print "In here"
 	main()
