@@ -1,2 +1,2 @@
 worker: python main.py
-clock: python clock.py
+clock: python clock.py --loglevel=DEBUG
