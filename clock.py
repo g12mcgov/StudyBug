@@ -24,7 +24,7 @@ from main import main
 sched = BlockingScheduler()
 
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
-@sched.scheduled_job('cron', hour=8, minute=59, misfire_grace_time=20)
+@sched.scheduled_job('cron', hour=9, minutes=1, misfire_grace_time=20)
 def job():
 	print "In here"
 	main()
