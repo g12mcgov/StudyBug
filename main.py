@@ -107,7 +107,8 @@ def main():
 	logger.info("------------------------")
 
 def bookRooms(user):
-	selenium_timeout = 10
+	selenium_timeout = 30
+
 	logger.info(" " + user.username + " - booking rooms")
 	if not user:
 		logger.error(" " + user.username + " - NO AVAILABLE TIMES")
@@ -247,22 +248,33 @@ def availability(room, soup, startTime, endTime):
 	start = parseTime(startTime)
 	end = parseTime(endTime)
 
+	print "Start Time: ", start
+
 	# Get the first element on the grid
 	starting_time = parseTime(blocks[0].find('span', {'class': 'time-slot'}).get_text())
 
+	print "Starting Time: ", starting_time
+
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
+
+	print "Ending Time: ", ending_time
 
 	# If we configured a time later than the last possible one, limit it
 	if ending_time < end:
 		end = ending_time
 	
 	# Calculate our starting time point by finding the distance between the two times.
-	difference = start - starting_time
+	difference = abs(start - starting_time)
+	difference_no_abs = start - starting_time
+
+	logger.info("abs(Difference): " + str(difference))
+	logger.info("Difference: " + str(difference_no_abs))
 
 	# If by some chance, our xpaths start at the time we've configured, we don't need
 	# calculate the half hours because the xpaths we want to click on will start at 0.
-	if not difference:
+
+	if not difference or difference == datetime.timedelta(0):
 		i = 0
 	else:
 		# Breaks up the difference into half-hour blocks
@@ -300,7 +312,6 @@ def availability(room, soup, startTime, endTime):
 		return 
 	else:
 		logger.info(" total available time slots: " + str(len(rooms)))
-
 
 	# Returns a list of dicts of rooms as such:
 	# {'status': u'cell odd open', 'xpath': "id('room-203a')/x:dd[17]", 'room': 'room-225', 'time': u'4:00 PM'} 
