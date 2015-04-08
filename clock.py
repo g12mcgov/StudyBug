@@ -24,12 +24,13 @@ from main import main
 sched = BlockingScheduler()
 
 # Executes every night at 5:00am UTC time | 12:00am (midnight) Winston-Salem, NC time
-# @sched.scheduled_job('cron', hour=8, minute=52, misfire_grace_time=20)
-# def scheduled_job():
-# 	main()
-@sched.scheduled_job('interval', minutes=1)
+@sched.scheduled_job('cron', hour=8, minute=59, misfire_grace_time=20)
 def job():
-    print 'This job is run every minute.'
+	print "In here"
+	main()
+# @sched.scheduled_job('interval', minutes=1)
+# def job():
+#     print 'This job is run every minute.'
     
 sched.start()
 
