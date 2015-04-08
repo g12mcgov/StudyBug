@@ -1,29 +1,28 @@
 #!/usr/bin/python
 
 # Name: StudyBug 
-# Author(s): Grant McGovern & Gaurav Sheni
-# Date: 16 March 2013
+# File: /StudyBug/main.py
+#
+# Author(s): Grant McGovern
+# Date: Tue 6 Jan 2015 
 #
 # URL: www.github.com/g12mcgov/studybug
 #
+# ~ This is the main driver for the application ~
+#
 #
 
-import os
 import csv
 import sys
 import time
 import socket
 import urllib2
 import logging
-import operator
 import datetime
 import ConfigParser
-from timeit import Timer 
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from multiprocessing import Pool 
-from collections import OrderedDict
-from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
@@ -40,14 +39,17 @@ from loggings.loger import configLogger
 from helpers.helper import chunk, parseTime
 
 def main():
+	global logger
+	global url
+
+	# Declare our root logger
+	logger = configLogger("root")
+	
 	# To indicate a new log-block
 	logger.info("-------- NEW LOG BLOCK ---------------")
 	
 	log_start = datetime.datetime.now()
 	logger.info(" beginning StudyBug at " + str(log_start))
-
-	global url
-	global selenium_timeout
 
 	# Get date 5 days ahead
 	date = getDate()
@@ -61,6 +63,8 @@ def main():
 	selenium_timeout = int(configs[4])
 	email = str(configs[5])
 	password = str(configs[6])
+	MONGO_HOST = str(configs[7])
+	MONGO_PORT = int(configs[8])
 	
 	# Reads in user info
 	rows = readIn()
@@ -79,9 +83,9 @@ def main():
 	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
-	for user in users:
-		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
-	
+	# for user in users:
+	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
+		
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
 	 	return
@@ -95,13 +99,16 @@ def main():
 	 	logger.info(" Executed in " + str(datetime.datetime.now() - log_start) + " seconds")
 
 	# Lastly, confirm our reservations
-	confirmed_times = confirm(url, room, rows)
+	confirmed_times = confirm(url, room, rows, selenium_timeout)
 	# Send email with our reserved rooms
-	sendEmail(confirmed_times, room, email, password, startTime, endTime)
+	expectedTime = computeExpected(startTime, endTime)
+	sendEmail(confirmed_times, room, email, password, startTime, endTime, expectedTime, MONGO_HOST, MONGO_PORT)
 
 	logger.info("------------------------")
 
 def bookRooms(user):
+	selenium_timeout = 30
+
 	logger.info(" " + user.username + " - booking rooms")
 	if not user:
 		logger.error(" " + user.username + " - NO AVAILABLE TIMES")
@@ -241,22 +248,33 @@ def availability(room, soup, startTime, endTime):
 	start = parseTime(startTime)
 	end = parseTime(endTime)
 
+	print "Start Time: ", start
+
 	# Get the first element on the grid
 	starting_time = parseTime(blocks[0].find('span', {'class': 'time-slot'}).get_text())
 
+	print "Starting Time: ", starting_time
+
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
+
+	print "Ending Time: ", ending_time
 
 	# If we configured a time later than the last possible one, limit it
 	if ending_time < end:
 		end = ending_time
 	
 	# Calculate our starting time point by finding the distance between the two times.
-	difference = start - starting_time
+	difference = abs(start - starting_time)
+	difference_no_abs = start - starting_time
+
+	logger.info("abs(Difference): " + str(difference))
+	logger.info("Difference: " + str(difference_no_abs))
 
 	# If by some chance, our xpaths start at the time we've configured, we don't need
 	# calculate the half hours because the xpaths we want to click on will start at 0.
-	if not difference:
+
+	if not difference or difference == datetime.timedelta(0):
 		i = 0
 	else:
 		# Breaks up the difference into half-hour blocks
@@ -295,7 +313,6 @@ def availability(room, soup, startTime, endTime):
 	else:
 		logger.info(" total available time slots: " + str(len(rooms)))
 
-
 	# Returns a list of dicts of rooms as such:
 	# {'status': u'cell odd open', 'xpath': "id('room-203a')/x:dd[17]", 'room': 'room-225', 'time': u'4:00 PM'} 
 	# {'status': u'cell even open', 'xpath': "id('room-203a')/x:dd[18]", 'room': 'room-225', 'time': u'4:30 PM'} 
@@ -306,9 +323,9 @@ def matchUsers(rows, rooms):
 	## Check for white space in csv file
 	rooms = chunk(rooms, 4)
 
-	for room in rooms:
-		logger.info('\n')
-		logger.info(room)
+	# for room in rooms:
+	# 	logger.info('\n')
+	# 	logger.info(room)
 	
 	userdicts = []
 
@@ -372,8 +389,10 @@ def getConfig():
 	selenium_timeout = config.get('studybug', 'SELENIUM_TIMEOUT')
 	email = config.get('studybug', 'EMAIL')
 	password = config.get('studybug', 'PASSWORD')
+	MONGO_HOST = config.get('studybug', 'MONGO_HOST')
+	MONGO_PORT = config.get('studybug', 'MONGO_PORT')
 
-	return (url, room, startTime, endTime, selenium_timeout, email, password)
+	return (url, room, startTime, endTime, selenium_timeout, email, password, MONGO_HOST, MONGO_PORT)
 
 ## Sends log data to Loggly via their API
 def sendToLoggly():
@@ -386,57 +405,107 @@ def sendToLoggly():
 	}))
 	urllib2.urlopen("https://logs-01.loggly.com/inputs/65f419af-5bdb-489d-97b2-dd4883dad10a/tag/python/", log_data)
 
+
 ## Individually logs into each user account and confirms their reservation
-def confirm(url, room, rows):
+def confirm(url, room, rows, selenium_timeout):
 	logger.info(" confirming...")
 
 	confirmationlist = []
 
 	for row in rows:
-		username = row[0]
-		password = row[1]
+		for attempt in range(20):
+			username = row[0]
+			password = row[1]
 
-		driver = webdriver.PhantomJS()
+			driver = webdriver.PhantomJS()
+			wait = WebDriverWait(driver, selenium_timeout)
 
-		# This is a PhantomJS bug remedied by the following method call... should 
-		# look into a fix for this.
-		driver.set_window_size(2000, 2000)
+			# This is a PhantomJS bug remedied by the following method call... should 
+			# look into a fix for this.
+			driver.set_window_size(2000, 2000)
 
-		driver.get("https://zsr.wfu.edu/studyrooms/login")
-		logger.info(" checking user " + username + "...")
+			driver.get("https://zsr.wfu.edu/studyrooms/login")
+			logger.info(" checking user " + username + "...")
 
-		username_box = driver.find_element_by_name("username")
-		username_box.send_keys(username)
+			try:			
+				username_box = wait.until(EC.presence_of_element_located((By.NAME, "username")))
+				username_box.send_keys(username)
+
+				# username_box = driver.find_element_by_name("username")
+				# username_box.send_keys(username)
+				
+				password_box = wait.until(EC.presence_of_element_located((By.NAME, "password")))
+				password_box.send_keys(password)
+
+				# password_box = driver.find_element_by_name("password")
+				# password_box.send_keys(password)
+				
+				submit = wait.until(EC.presence_of_element_located((By.NAME, "submit")))
+				submit.click()
+
+				# driver.find_element_by_name("submit").click()
+
+			except NoSuchElementException as err:
+				logger.error(" " + username + " FAILED")
+				logger.error(err)
+
+			driver.get(url)
+
+			html = driver.page_source
+			soup = BeautifulSoup(html) 
 		
-		password_box = driver.find_element_by_name("password")
-		password_box.send_keys(password)
+			#confirmationlist = [reservation for reservation in soup.find(id=room).select('dd') if "current" in reservation.text]
+
+			try:
+				# Store an individual list of what rooms users booked
+				individual_reservation_list = []
+
+				for reservation in soup.find(id=room).select('dd'):
+					class_name = ' '.join(reservation.get('class'))
+					# Checks to see if WE in fact reserved that room
+					if "current_user_reservations" in class_name:
+						individual_reservation_list.append(reservation.get_text())
+						confirmationlist.append(reservation.get_text())
+						logger.info(" " + username + " booked " + reservation.get_text())
+
+				# If a user has times associated with him/her, break out
+				if individual_reservation_list:
+					break
+
+			except AttributeError as err:
+				logger.error(err)
+
+			# Nasty-ass xpath... no idea why the normal minified one won't work
+			try:
+				# logout_button = driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[1]/ul/li[3]/a")
+				# logout_button.click()
+
+				logout_button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[2]/div[1]/ul/li[3]/a")))
+				logout_button.click()
+
+			except NoSuchElementException as err:
+				logger.error(" " + username + " FAILED when clicking logOut" )
+				logger.error(err)
+
 		
-		driver.find_element_by_name("submit").click()
-
-		driver.get(url)
-
-		html = driver.page_source
-		soup = BeautifulSoup(html) 
-	
-		#confirmationlist = [reservation for reservation in soup.find(id=room).select('dd') if "current" in reservation.text]
-
-		for reservation in soup.find(id=room).select('dd'):
-			class_name = ' '.join(reservation.get('class'))
-			# Checks to see if WE in fact reserved that room
-			if "current_user_reservations" in class_name:
-				confirmationlist.append(reservation.get_text())
-				logger.info(" " + username + " booked " + reservation.get_text())
-
-		# Nasty-ass xpath... no idea why the normal minified one won't work
-		logout_button = driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[1]/ul/li[3]/a")
-		logout_button.click()
-	
-	
-		driver.quit()
+			driver.quit()
 	
 	return confirmationlist
 
+
+## Computes our expected time range given params 
+def computeExpected(start, end):
+	starting = datetime.datetime.strptime(start, "%I:%M %p")
+	ending = datetime.datetime.strptime(end, "%I:%M %p")
+
+	# Convert to half hour blocks
+	expectedTime = ending - starting
+
+	expectedTime = (ending - starting).total_seconds() / 60 / 60 * 2
+	logger.info(" expected time: " + str(expectedTime))
+
+	return expectedTime	
+
+
 if __name__ == "__main__":
-	# Declare our root logger
-	logger = configLogger("root")
 	main()
