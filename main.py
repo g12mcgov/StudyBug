@@ -86,7 +86,7 @@ def main():
 		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
 	# DEBUG
-	#users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
+	# users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
 
 	print users
 
