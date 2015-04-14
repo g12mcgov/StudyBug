@@ -75,7 +75,6 @@ def main():
 	# Discovers available rooms
 	rooms = availability(room, HTML, startTime, endTime)
 
-
 	if not rooms:
 		logger.warning(" no available rooms at all")
 		return
@@ -83,9 +82,14 @@ def main():
 	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
-	# for user in users:
-	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
-		
+	for user in users:
+		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
+	
+	# DEBUG
+	#users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
+
+	print users
+
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
 	 	return
@@ -119,6 +123,10 @@ def bookRooms(user):
 		# This is a PhantomJS bug remedied by the following method call... should 
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
+
+		# Save a screenshot for debug purposes if necessary
+		driver.save_screenshot('screenshots/screenshot.png')
+
 
 		wait = WebDriverWait(driver, selenium_timeout)
 
@@ -248,17 +256,11 @@ def availability(room, soup, startTime, endTime):
 	start = parseTime(startTime)
 	end = parseTime(endTime)
 
-	print "Start Time: ", start
-
 	# Get the first element on the grid
 	starting_time = parseTime(blocks[0].find('span', {'class': 'time-slot'}).get_text())
 
-	print "Starting Time: ", starting_time
-
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
-
-	print "Ending Time: ", ending_time
 
 	# If we configured a time later than the last possible one, limit it
 	if ending_time < end:
