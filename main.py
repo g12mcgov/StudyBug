@@ -79,20 +79,20 @@ def main():
 		logger.warning(" no available rooms at all")
 		return
 
-	# Creates a list of User objects, each with 4 time-slots to book
+	Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
 	# for user in users:
 	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
-	DEBUG
-	users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
+	# DEBUG
+	# users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
 
 	print users
 
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
-	 	# return
+	 	return
 	else:
 		logger.info(" total users: " + str(len(users)))
 		logger.info(" creating thread pool... ")
