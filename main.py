@@ -82,17 +82,17 @@ def main():
 	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
-	for user in users:
-		logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
+	# for user in users:
+	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
-	# DEBUG
-	# users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
+	DEBUG
+	users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
 
 	print users
 
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
-	 	return
+	 	# return
 	else:
 		logger.info(" total users: " + str(len(users)))
 		logger.info(" creating thread pool... ")
@@ -124,8 +124,12 @@ def bookRooms(user):
 		# look into a fix for this.
 		driver.set_window_size(2000, 2000)
 
-		# Save a screenshot for debug purposes if necessary
-		driver.save_screenshot('screenshots/screenshot.png')
+		try:
+			# Save a screenshot for debug purposes if necessary
+			driver.save_screenshot('screenshots/screenshot.png')
+		except AttributeError as err:
+			logger.error(err)
+			pass
 
 
 		wait = WebDriverWait(driver, selenium_timeout)
