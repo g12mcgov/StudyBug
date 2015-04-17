@@ -79,7 +79,7 @@ def main():
 		logger.warning(" no available rooms at all")
 		return
 
-	Creates a list of User objects, each with 4 time-slots to book
+	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
 
 	# for user in users:
