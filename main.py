@@ -38,6 +38,9 @@ from emailsend import sendEmail
 from loggings.loger import configLogger
 from helpers.helper import chunk, parseTime
 
+# Overide Selenium TimeoutException
+class TimeoutException(Exception): pass
+
 def main():
 	global logger
 	global url
@@ -281,7 +284,7 @@ def availability(room, soup, startTime, endTime):
 	# calculate the half hours because the xpaths we want to click on will start at 0.
 
 	if not difference or difference == datetime.timedelta(0):
-		i = 0
+		i = 1
 	else:
 		# Breaks up the difference into half-hour blocks
 		halfHours = (difference.seconds / 60 / 60)*2
@@ -297,7 +300,7 @@ def availability(room, soup, startTime, endTime):
 		# Only assign rooms between the above hours
 		if start <= parseTime(time_) <= end:
 			# Pre-increment by 1, no idea why, but I should find out
-			i += 1
+			# i += 1
 			## Check to make sure room is open 
 			if "open" in status:
 				rooms.append({
