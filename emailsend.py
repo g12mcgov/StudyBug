@@ -108,7 +108,7 @@ def sendEmail(confirmationList, room, email, password, startTime, endTime, expec
 		# 	"fivedays_ahead": "02/11/2015"
 		# }
 		# 
-		# 
+		#
 		mongo.addEntry(original_rooms, expectedTime, formatted_rooms, room, todayDate, newdate)
 	else:
 		mongo.addEntry(original_rooms, expectedTime, original_rooms, room, todayDate, newdate)

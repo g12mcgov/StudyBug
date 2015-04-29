@@ -12,6 +12,7 @@
 #
 #
 
+## Module Includes ##
 import csv
 import sys
 import time
@@ -48,7 +49,7 @@ def main():
 	# Declare our root logger
 	logger = configLogger("root")
 	
-	# To indicate a new log-block
+	# Indicates a new log-block
 	logger.info("-------- NEW LOG BLOCK ---------------")
 	
 	log_start = datetime.datetime.now()
@@ -84,14 +85,9 @@ def main():
 
 	# Creates a list of User objects, each with 4 time-slots to book
 	users = matchUsers(rows, rooms)
-
-	# for user in users:
-	# 	logger.info(" user: " + user.username + " xpaths: " + str(user.xpath))
 	
 	# DEBUG
 	# users = [User({"username": "mcgoga12", "password": "ga120206", "xpath": "blah"})]
-
-	print users
 
 	if not users:
 	 	logger.warning(" no rooms for time constraint")
@@ -133,7 +129,6 @@ def bookRooms(user):
 		except AttributeError as err:
 			logger.error(err)
 			pass
-
 
 		wait = WebDriverWait(driver, selenium_timeout)
 
@@ -196,7 +191,7 @@ def bookRooms(user):
 	# Close PhantomJS
 	driver.quit()
 
-# Will eventually be used to change the IP address every time it's run
+# Might be eventually used to spoof IP address in case WFU gets mad at us. ;)
 def IPfetch():
 	hostname = socket.gethostname()
 	ip_address = socket.gethostbyname(socket.gethostname())
@@ -213,7 +208,9 @@ def htmlFetch(url):
 	soup = BeautifulSoup(page.read())
 
 	if soup:
-		logger.info( "recieved HTML")	
+		logger.info(" recieved HTML")	
+	else:
+		logger.error(" unable to retrieve HTML")
 	
 	return soup
 
@@ -253,11 +250,13 @@ def availability(room, soup, startTime, endTime):
 				pass
 
 		except AttributeError as err:
-			logger.error("Could not click on element")
+			logger.error(" Could not click on element")
 			logger.error(err)
 
 		time.sleep(1)
 
+	# Inline method to convert time to formatted log string
+	toString = lambda timestamp: timestamp.strftime("%H:%M:%S")
 
 	# Extract our times from the config file
 	start = parseTime(startTime)
@@ -266,28 +265,39 @@ def availability(room, soup, startTime, endTime):
 	# Get the first element on the grid
 	starting_time = parseTime(blocks[0].find('span', {'class': 'time-slot'}).get_text())
 
+	logger.info(" Actual Starting Time: " + toString(starting_time))
+
 	# Get the last element on the grid
 	ending_time = parseTime(blocks[-1].find('span', {'class': 'time-slot'}).get_text())
 
+	logger.info(" Actual Ending Time: " + toString(ending_time)) 
+
 	# If we configured a time later than the last possible one, limit it
-	if ending_time < end:
-		end = ending_time
+	if (ending_time < end): end = ending_time
+
+	# If we configured a time earlier than the first one, limit it
+	if (starting_time > start): start = starting_time
 	
+	logger.info(" Configured Start time: " + toString(start))
+	logger.info(" Configured End time: " + toString(end))
+
 	# Calculate our starting time point by finding the distance between the two times.
 	difference = abs(start - starting_time)
 	difference_no_abs = start - starting_time
 
-	logger.info("abs(Difference): " + str(difference))
-	logger.info("Difference: " + str(difference_no_abs))
+	logger.info(" abs(Difference): " + toString(difference))
+	logger.info(" Difference: " + toString(difference_no_abs))
 
 	# If by some chance, our xpaths start at the time we've configured, we don't need
-	# calculate the half hours because the xpaths we want to click on will start at 0.
+	# calculate the half hours because the xpaths we want to click on will start at 1.
 
-	if not difference or difference == datetime.timedelta(0):
+	if not (difference) or (difference == datetime.timedelta(0)):
 		i = 1
 	else:
 		# Breaks up the difference into half-hour blocks
-		halfHours = (difference.seconds / 60 / 60)*2
+		halfHours = (difference.seconds / 60 / 60) * 2
+
+		logger.info( "halfhours: " + str(halfhours))
 
 		## Increment i (our XPath index until we hit the startime time)
 		i = 1
@@ -300,7 +310,7 @@ def availability(room, soup, startTime, endTime):
 		# Only assign rooms between the above hours
 		if start <= parseTime(time_) <= end:
 			# Pre-increment by 1, no idea why, but I should find out
-			# i += 1
+			i += 1
 			## Check to make sure room is open 
 			if "open" in status:
 				rooms.append({
@@ -318,6 +328,7 @@ def availability(room, soup, startTime, endTime):
 			" no available time slots for room: " + room + " between " + startTime + " and " + endTime
 			)
 		logger.warning("Exiting...")
+		
 		return 
 	else:
 		logger.info(" total available time slots: " + str(len(rooms)))
@@ -331,10 +342,6 @@ def availability(room, soup, startTime, endTime):
 def matchUsers(rows, rooms):
 	## Check for white space in csv file
 	rooms = chunk(rooms, 4)
-
-	# for room in rooms:
-	# 	logger.info('\n')
-	# 	logger.info(room)
 	
 	userdicts = []
 
@@ -401,18 +408,17 @@ def getConfig():
 	MONGO_HOST = config.get('studybug', 'MONGO_HOST')
 	MONGO_PORT = config.get('studybug', 'MONGO_PORT')
 
-	return (url, room, startTime, endTime, selenium_timeout, email, password, MONGO_HOST, MONGO_PORT)
-
-## Sends log data to Loggly via their API
-def sendToLoggly():
-	log_data = "PLAINTEXT=" + urllib2.quote(simplejson.dumps(
-	{
-	   'hoover':'beaver',
-	   'ice':{
-	        'ice':'baby'
-	   }
-	}))
-	urllib2.urlopen("https://logs-01.loggly.com/inputs/65f419af-5bdb-489d-97b2-dd4883dad10a/tag/python/", log_data)
+	# Returns a large tuple of config params
+	return (
+		url, 
+		room, 
+		startTime, 
+		endTime, 
+		selenium_timeout, 
+		email, password, 
+		MONGO_HOST, 
+		MONGO_PORT
+		)
 
 
 ## Individually logs into each user account and confirms their reservation
@@ -496,7 +502,6 @@ def confirm(url, room, rows, selenium_timeout):
 				logger.error(" " + username + " FAILED when clicking logOut" )
 				logger.error(err)
 
-		
 			driver.quit()
 	
 	return confirmationlist
