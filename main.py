@@ -285,8 +285,8 @@ def availability(room, soup, startTime, endTime):
 	difference = abs(start - starting_time)
 	difference_no_abs = start - starting_time
 
-	logger.info(" abs(Difference): " + toString(difference))
-	logger.info(" Difference: " + toString(difference_no_abs))
+	logger.info(" abs(Difference): " + str(difference))
+	logger.info(" Difference: " + str(difference_no_abs))
 
 	# If by some chance, our xpaths start at the time we've configured, we don't need
 	# calculate the half hours because the xpaths we want to click on will start at 1.
@@ -297,7 +297,7 @@ def availability(room, soup, startTime, endTime):
 		# Breaks up the difference into half-hour blocks
 		halfHours = (difference.seconds / 60 / 60) * 2
 
-		logger.info( "halfhours: " + str(halfhours))
+		logger.info( "halfhours: " + str(halfHours))
 
 		## Increment i (our XPath index until we hit the startime time)
 		i = 1
