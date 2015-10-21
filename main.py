@@ -34,7 +34,6 @@ sys.path.append('loggings')
 
 ## Local Includes ##
 from user import User
-from schema import XPathSchema
 from emailsend import sendEmail
 from loggings.loger import configLogger
 from helpers.helper import chunk, parseTime
