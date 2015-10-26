@@ -356,7 +356,13 @@ def matchUsers(rows, rooms):
 
 	for user in Users:
 		if user.xpath:
-			logger.info(" assigned " + str(len(user.xpath)) + " chunks to " + user.username)
+			logger.info(
+				" assigned "
+				+ str(len(user.xpath)) 
+				+ " chunks to " 
+				+ user.username 
+				+ " ( " + str([time_slot['time'] for time_slot in user.xpath]) + " )"
+				)
 		else:
 			logger.info(" did not assign any chunks to " + user.username)
 
